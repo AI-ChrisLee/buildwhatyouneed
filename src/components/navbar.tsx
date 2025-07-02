@@ -36,7 +36,7 @@ export function NavBar() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b">
-      <div className="max-w-[900px] mx-auto px-4">
+      <div className="max-w-[1050px] mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Title */}
           <h1 className="text-xl font-semibold">Build What You Need</h1>
