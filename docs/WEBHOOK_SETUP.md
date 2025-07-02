@@ -2,14 +2,18 @@
 
 ## Production Webhook Configuration
 
+### ⚠️ IMPORTANT: Domain Redirect Issue
+If your site redirects from `aichrislee.com` to `www.aichrislee.com` (or vice versa), you MUST use the final destination URL in your webhook configuration. Otherwise, Stripe will receive a 307 redirect and the webhook will fail.
+
 ### 1. Go to Stripe Dashboard
 1. Login to [Stripe Dashboard](https://dashboard.stripe.com)
 2. Navigate to **Developers** → **Webhooks**
 3. Click **"Add endpoint"**
 
 ### 2. Configure Webhook Endpoint
-- **Endpoint URL**: `https://aichrislee.com/api/stripe/webhook`
+- **Endpoint URL**: `https://www.aichrislee.com/api/stripe/webhook`
 - **Description**: Production webhook for BuildWhatYouNeed
+- **Important**: Use the exact domain that your site resolves to (with or without www)
 
 ### 3. Select Events to Listen For
 Select these events:
@@ -37,9 +41,13 @@ Select these events:
 ## Troubleshooting
 
 ### 307 Redirect Error
-- Make sure the URL is exactly `https://aichrislee.com/api/stripe/webhook`
+- This happens when your domain redirects (e.g., from non-www to www)
+- Make sure the webhook URL matches your actual domain:
+  - If your site redirects to `www.aichrislee.com`, use `https://www.aichrislee.com/api/stripe/webhook`
+  - If your site uses `aichrislee.com`, use `https://aichrislee.com/api/stripe/webhook`
 - No trailing slash
 - Using https:// not http://
+- Check your Vercel domain settings to see which is the primary domain
 
 ### 406 Error from Supabase
 - This is already fixed in the code
@@ -83,5 +91,5 @@ stripe trigger checkout.session.completed
 STRIPE_SECRET_KEY=sk_live_xxx  # or sk_test_xxx for testing
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 STRIPE_PRICE_ID=price_xxx
-NEXT_PUBLIC_BASE_URL=https://aichrislee.com
+NEXT_PUBLIC_BASE_URL=https://www.aichrislee.com  # Must match your actual domain
 ```
