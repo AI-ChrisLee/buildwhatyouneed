@@ -30,11 +30,35 @@ export default function LandingPage() {
     }
   }
 
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.email.trim()) {
-      // Handle final submission here
-      console.log("Form submitted:", formData)
+      // Save lead to database
+      try {
+        await fetch('/api/leads', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            name: formData.name,
+            source: 'landing_page',
+            // Add UTM parameters if they exist in URL
+            utm_source: new URLSearchParams(window.location.search).get('utm_source'),
+            utm_medium: new URLSearchParams(window.location.search).get('utm_medium'),
+            utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
+          }),
+        })
+      } catch (error) {
+        console.error('Error saving lead:', error)
+        // Don't block the user flow
+      }
+      
+      // Save email to localStorage and redirect to /join
+      localStorage.setItem('optinEmail', formData.email)
+      localStorage.setItem('optinName', formData.name)
+      window.location.href = '/join'
     }
   }
 
@@ -58,7 +82,7 @@ export default function LandingPage() {
 
           {/* Title */}
           <h1 className="text-4xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-            Build What You Need : <br /> 
+            Build What You Need, Nothing Else : <br /> 
             How Entrepreneurs Build $419/mo SaaS in 3 Hours
           </h1>
 

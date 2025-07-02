@@ -20,7 +20,7 @@ This guide follows your platform's core principle: minimal complexity, maximum v
 
 ### 1.2 Tables You Actually Need (MVP)
 ```sql
--- Only 7 tables for entire platform
+-- 8 tables for entire platform
 users
 threads
 comments
@@ -28,6 +28,7 @@ courses
 lessons
 stripe_customers
 stripe_subscriptions
+leads  -- CRM tracking (NEW)
 ```
 
 That's it. No more.
@@ -38,7 +39,7 @@ That's it. No more.
 - ❌ Analytics tables (use Supabase dashboard)
 - ❌ Audit logs (not needed for MVP)
 - ❌ Tags/Categories tables (hardcode them)
-- ❌ Permissions tables (3 roles only: free, paid, admin)
+- ❌ Permissions tables (just use is_admin boolean)
 
 ---
 
@@ -80,10 +81,11 @@ CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT auth.uid(),
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
-  role TEXT DEFAULT 'free' CHECK (role IN ('free', 'paid', 'admin')),
+  is_admin BOOLEAN DEFAULT FALSE,  -- Admin role only
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 -- No avatar, bio, social links, preferences, etc.
+-- Paid status comes from stripe_subscriptions table
 ```
 
 ### 3.2 Threads Table
@@ -149,21 +151,61 @@ CREATE TABLE stripe_subscriptions (
 );
 ```
 
+### 3.6 Leads Table (CRM)
+```sql
+CREATE TABLE leads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  stage TEXT NOT NULL CHECK (stage IN ('lead', 'hot_lead', 'member', 'cancelled', 'optout')),
+  source TEXT DEFAULT 'landing_page',
+  user_id UUID REFERENCES users(id),
+  -- Timestamps for journey tracking
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  hot_lead_at TIMESTAMPTZ,
+  member_at TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  optout_at TIMESTAMPTZ,
+  -- UTM tracking
+  utm_source TEXT,
+  utm_medium TEXT,
+  utm_campaign TEXT
+);
+-- Automatic stage updates via triggers
+```
+
 ---
 
 ## 4. API Design (Keep It Boring)
 
 ### 4.1 RESTful Routes Only
 ```
+# Auth
+POST   /api/auth/signup      - Create account
+POST   /api/auth/login       - Login
+POST   /api/auth/logout      - Logout
+
+# Community
 GET    /api/threads          - List threads
 POST   /api/threads          - Create thread
 GET    /api/threads/[id]     - Get thread with comments
 POST   /api/threads/[id]/comments - Add comment
 
+# Learning
 GET    /api/courses          - List courses
 GET    /api/courses/[id]/lessons - Get lessons
 
+# Calendar
 GET    /api/calendar         - Get hardcoded schedule
+
+# Payments
+POST   /api/stripe/checkout  - Create checkout session
+POST   /api/stripe/webhook   - Handle Stripe events
+
+# CRM (Admin only)
+POST   /api/leads            - Save lead from landing page
+GET    /api/leads            - View lead analytics (admin)
+POST   /api/leads/optout     - Handle unsubscribe
 ```
 
 ### 4.2 No GraphQL, No tRPC
@@ -201,6 +243,11 @@ CREATE INDEX idx_comments_thread ON comments(thread_id, created_at);
 
 -- User's threads
 CREATE INDEX idx_threads_author ON threads(author_id);
+
+-- Lead lookups
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_stage ON leads(stage);
+CREATE INDEX idx_leads_created_at ON leads(created_at DESC);
 ```
 
 That's all. No more indexes until proven necessary.
@@ -423,13 +470,13 @@ const threads = await supabase
 ## 13. Launch Checklist
 
 ### Database
-- [ ] Create 7 tables (no more)
-- [ ] Add 3 indexes (no more)
+- [ ] Create 8 tables (users, leads, threads, comments, courses, lessons, stripe_customers, stripe_subscriptions)
+- [ ] Add 6 indexes for performance
 - [ ] Enable RLS with simple policies
-- [ ] Test with 1000 fake records
+- [ ] Test with sample data
 
 ### Backend
-- [ ] 8 API endpoints (no more)
+- [ ] 12 API endpoints (auth, threads, courses, calendar, stripe, leads)
 - [ ] Stripe webhook (2 events only)
 - [ ] Basic error handling
 - [ ] No complex middleware
@@ -459,3 +506,68 @@ The best code is no code. The best feature is no feature. The best architecture 
 You're building a community platform, not Facebook. Keep it simple, ship it fast, and laugh all the way to the bank while competitors debate microservices.
 
 **Build what you need. Nothing else.**
+
+---
+
+## High-Level Development Phases
+
+### Phase 1: Foundation & Planning ✅
+- [x] Create PRD (Product Requirements Document)
+- [x] Define user roles (free member, paid member, admin)
+- [x] Plan user funnel (lead → signup → payment → member)
+- [x] Choose tech stack (Next.js, Supabase, Stripe, Tailwind)
+
+### Phase 2: Marketing & Sales Funnel ✅
+- [x] Landing page with smart 3-step form
+- [x] /join sales page with 8 conversion sections
+- [x] Legal pages (terms, privacy)
+- [x] Footer component
+- [x] Responsive design for all pages
+
+### Phase 3: Authentication & Access Control ✅
+- [x] Signup page with 7-day guarantee messaging
+- [x] Login page with matching design
+- [x] Payment page (/payment) with Stripe integration UI
+- [x] Middleware for route protection
+- [x] Redirect flow implementation
+
+### Phase 4: Community UI ✅
+- [x] Threads page with categories
+- [x] Classroom page with course cards
+- [x] Calendar page with office hours
+- [x] About page with philosophy
+- [x] Navigation with (community) route group
+- [x] Community badge component
+
+### Phase 5: Database & Backend ✅
+- [x] Supabase setup (8 tables + 2 views)
+- [x] Row Level Security policies
+- [x] CRM leads table with automatic tracking
+- [x] Authentication endpoints
+- [x] Community API endpoints
+- [x] Test data and verification
+
+### Phase 6: Payment Integration 🔄
+- [x] Stripe checkout endpoint
+- [x] Webhook handler setup
+- [ ] Create Stripe product ($97/month)
+- [ ] Test full payment flow
+- [ ] Connect webhook to production
+
+### Phase 7: Final Testing & Launch Prep 📋
+- [ ] End-to-end user journey test
+- [ ] Performance optimization (<2s loads)
+- [ ] Mobile responsiveness check
+- [ ] Security audit
+- [ ] Production deployment
+- [ ] Domain configuration
+
+### Phase 8: Post-Launch 📋
+- [ ] Monitor conversion funnel
+- [ ] Gather user feedback
+- [ ] Fix critical bugs only
+- [ ] Create initial course content
+- [ ] Run first office hours
+
+### Current Status: Phase 5 Complete ✅
+You've completed all UI, authentication, and database setup. Next step is finishing Stripe integration in production, then testing everything end-to-end before launch.

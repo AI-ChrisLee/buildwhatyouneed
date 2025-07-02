@@ -1,10 +1,61 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { AuthLeftSection } from "@/components/auth-left-section"
 
 export default function SignupPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    termsAccepted: false
+  })
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    
+    if (!formData.termsAccepted) {
+      alert("Please accept the terms and conditions")
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.name,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        // Redirect to payment page after successful signup
+        router.push('/payment')
+      } else {
+        alert(result.error || 'Signup failed')
+      }
+    } catch (error) {
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-6xl mx-auto">
@@ -25,12 +76,15 @@ export default function SignupPage() {
                   </p>
                 </div>
 
-                <form className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Input
                       type="text"
                       placeholder="First and last name"
                       className="h-12 text-base"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
                     />
                   </div>
 
@@ -39,6 +93,9 @@ export default function SignupPage() {
                       type="email"
                       placeholder="Business email address"
                       className="h-12 text-base"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
                     />
                   </div>
 
@@ -47,11 +104,21 @@ export default function SignupPage() {
                       type="password"
                       placeholder="Password"
                       className="h-12 text-base"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
                     />
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Checkbox id="terms" className="mt-1" />
+                    <Checkbox 
+                      id="terms" 
+                      className="mt-1"
+                      checked={formData.termsAccepted}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, termsAccepted: checked as boolean })
+                      }
+                    />
                     <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
                       By creating an account you accept our{" "}
                       <Link href="/terms" className="underline">
@@ -65,8 +132,8 @@ export default function SignupPage() {
                     </label>
                   </div>
 
-                  <Button size="lg" className="w-full h-12 text-lg">
-                    Create account & start building
+                  <Button type="submit" size="lg" className="w-full h-12 text-lg" disabled={loading}>
+                    {loading ? "Creating account..." : "Create account & start building"}
                   </Button>
                 </form>
 
