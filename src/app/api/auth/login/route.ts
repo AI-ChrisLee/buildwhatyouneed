@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       data: {
         user: data.user,
         hasActiveSubscription: !!subscription,
-        redirectTo: subscription ? '/threads' : '/checkout'
+        redirectTo: subscription ? '/threads' : '/payment'
       }
     })
   } catch (error) {

@@ -38,6 +38,11 @@ export async function middleware(request: NextRequest) {
     const communityRoutes = ['/threads', '/classroom', '/calendar', '/about', '/profile']
     const isCommunityRoute = communityRoutes.some(route => pathname.startsWith(route))
     
+    // Payment page needs auth but not subscription
+    if (pathname === '/payment') {
+      return response
+    }
+    
     if (isCommunityRoute) {
       // Check if user has active subscription
       const { data: subscription } = await supabase
@@ -48,7 +53,7 @@ export async function middleware(request: NextRequest) {
         .single()
 
       // No active subscription - redirect to payment
-      if (!subscription && pathname !== '/payment' && pathname !== '/payment-success') {
+      if (!subscription && pathname !== '/payment') {
         return NextResponse.redirect(new URL('/payment', request.url))
       }
     }

@@ -2,7 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY is not set')
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 export async function POST(request: Request) {
   const supabase = createClient()
@@ -31,12 +35,26 @@ export async function POST(request: Request) {
       )
     }
 
+    if (!process.env.STRIPE_PRICE_ID) {
+      return NextResponse.json(
+        { error: 'Stripe price ID is not configured' },
+        { status: 500 }
+      )
+    }
+
+    if (!process.env.NEXT_PUBLIC_BASE_URL) {
+      return NextResponse.json(
+        { error: 'Base URL is not configured' },
+        { status: 500 }
+      )
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID, // You need to create this in Stripe
+          price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],
@@ -51,8 +69,24 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Stripe checkout error:', error)
+    
+    // Provide more specific error messages
+    if (error.type === 'StripeAuthenticationError') {
+      return NextResponse.json(
+        { error: 'Stripe authentication failed. Check your API keys.' },
+        { status: 401 }
+      )
+    }
+    
+    if (error.type === 'StripeInvalidRequestError') {
+      return NextResponse.json(
+        { error: `Stripe error: ${error.message}` },
+        { status: 400 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }
