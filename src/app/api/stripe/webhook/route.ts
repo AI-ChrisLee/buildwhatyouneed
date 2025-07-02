@@ -4,9 +4,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil',
-})
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -36,15 +34,13 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session
         
         if (session.mode === 'subscription') {
-          // Get the user ID from client_reference_id
           const userId = session.client_reference_id
-          
           if (!userId) {
             console.error('No user ID in session')
             break
           }
 
-          // Create stripe customer record
+          // Create Stripe customer record
           await supabase
             .from('stripe_customers')
             .insert({
@@ -54,18 +50,16 @@ export async function POST(request: Request) {
             .select()
 
           // Get the subscription
-          const subscription = await stripe.subscriptions.retrieve(
-            session.subscription as string
-          )
-
-          // Create subscription record
+          const subscriptionId = session.subscription as string
+          
+          // Create subscription record with minimal data
           await supabase
             .from('stripe_subscriptions')
             .insert({
-              id: subscription.id,
+              id: subscriptionId,
               user_id: userId,
-              status: subscription.status,
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+              status: 'active', // Checkout completed means active
+              current_period_end: null // Will be updated by subscription.updated event
             })
             .select()
 
@@ -78,12 +72,18 @@ export async function POST(request: Request) {
         const subscription = event.data.object as Stripe.Subscription
         
         // Update subscription status
+        const updateData: any = {
+          status: subscription.status
+        }
+        
+        // Check if subscription has current_period_end
+        if ('current_period_end' in subscription && subscription.current_period_end) {
+          updateData.current_period_end = new Date((subscription as any).current_period_end * 1000).toISOString()
+        }
+        
         await supabase
           .from('stripe_subscriptions')
-          .update({
-            status: subscription.status,
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
-          })
+          .update(updateData)
           .eq('id', subscription.id)
 
         console.log(`Subscription ${subscription.id} updated to ${subscription.status}`)
