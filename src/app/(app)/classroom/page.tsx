@@ -55,13 +55,6 @@ const courses = [
 export default function ClassroomPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Classroom</h1>
-        <p className="text-muted-foreground">
-          Learn to build what you need and destroy your SaaS dependencies
-        </p>
-      </div>
 
       {/* Course Grid - 2 columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

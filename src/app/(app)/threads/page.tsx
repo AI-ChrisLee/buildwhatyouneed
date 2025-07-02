@@ -68,13 +68,6 @@ export default function ThreadsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Community</h1>
-        <p className="text-muted-foreground">
-          Where builders share wins and get help
-        </p>
-      </div>
 
       {/* Write something input */}
       <div 

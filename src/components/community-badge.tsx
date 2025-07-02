@@ -19,16 +19,16 @@ export function CommunityBadge() {
   return (
     <div className="space-y-6">
       {/* Community Card */}
-      <Card className="overflow-hidden">
-        <div className="bg-gradient-to-br from-purple-600 to-purple-800 p-6 text-white">
+      <Card className="overflow-hidden border-black">
+        <div className="bg-white p-6 text-black">
           <div className="flex items-center gap-2 text-xs font-medium mb-3">
-            <div className="p-1 bg-white/20 rounded">
+            <div className="p-1 bg-black/10 rounded">
               <Users className="h-3 w-3" />
             </div>
             <span>COMMUNITY</span>
           </div>
           <h2 className="text-2xl font-bold mb-1">Build What You Need</h2>
-          <p className="text-sm text-white/80 mb-4">buildwhatyouneed.com</p>
+          <p className="text-sm text-black/60 mb-4">buildwhatyouneed.com</p>
           <p className="text-sm mb-6">
             Learn how to build what you need without expensive SaaS. 
             Save thousands and own your tools.
@@ -36,15 +36,15 @@ export function CommunityBadge() {
           
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-white/60">✓</span>
+              <span className="text-black/60">✓</span>
               <span>Code Templates</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-white/60">✓</span>
+              <span className="text-black/60">✓</span>
               <span>SaaS Replacements</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-white/60">✓</span>
+              <span className="text-black/60">✓</span>
               <span>Community Support</span>
             </div>
           </div>

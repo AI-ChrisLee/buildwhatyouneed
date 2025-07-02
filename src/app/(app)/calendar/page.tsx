@@ -83,13 +83,6 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
-        <p className="text-muted-foreground">
-          Live sessions, workshops, and community events
-        </p>
-      </div>
 
       {/* View Toggle and Actions */}
       <div className="flex items-center justify-between">
