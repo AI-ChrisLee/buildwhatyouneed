@@ -6,15 +6,7 @@ import { mockThreads } from "@/lib/mock-data"
 import { ThreadCardV2 } from "@/components/thread-card-v2"
 import { NewThreadDialog } from "@/components/new-thread-dialog"
 import { ThreadDetailDialog } from "@/components/thread-detail-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu"
-import { SortDesc, TrendingUp, Clock, MessageSquare } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const categories = [
   { id: "all", label: "All" },
@@ -34,32 +26,26 @@ const threadsWithExtras = mockThreads.map((thread, i) => ({
   likes: 10 + (i * 7) % 40
 }))
 
-type SortOption = "recent" | "popular" | "most-commented"
+const THREADS_PER_PAGE = 20
 
 export default function ThreadsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [isNewThreadOpen, setIsNewThreadOpen] = useState(false)
   const [selectedThread, setSelectedThread] = useState<typeof threadsWithExtras[0] | null>(null)
   const [isThreadDetailOpen, setIsThreadDetailOpen] = useState(false)
-  const [sortBy, setSortBy] = useState<SortOption>("recent")
+  const [currentPage, setCurrentPage] = useState(1)
 
-  // Filter and sort threads
-  const filteredAndSortedThreads = threadsWithExtras
-    .filter(thread => {
-      const matchesCategory = selectedCategory === "all" || thread.category === selectedCategory
-      return matchesCategory
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "popular":
-          return (b.likes || 0) - (a.likes || 0)
-        case "most-commented":
-          return b.commentCount - a.commentCount
-        case "recent":
-        default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      }
-    })
+  // Filter threads
+  const filteredThreads = threadsWithExtras.filter(thread => {
+    const matchesCategory = selectedCategory === "all" || thread.category === selectedCategory
+    return matchesCategory
+  })
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredThreads.length / THREADS_PER_PAGE)
+  const startIndex = (currentPage - 1) * THREADS_PER_PAGE
+  const endIndex = startIndex + THREADS_PER_PAGE
+  const currentThreads = filteredThreads.slice(startIndex, endIndex)
 
   const handleThreadClick = (thread: typeof threadsWithExtras[0]) => {
     setSelectedThread(thread)
@@ -68,7 +54,6 @@ export default function ThreadsPage() {
 
   return (
     <div className="space-y-6">
-
       {/* Write something input */}
       <div 
         className="w-full p-4 border rounded-lg cursor-text hover:bg-muted/50 transition-colors"
@@ -77,74 +62,24 @@ export default function ThreadsPage() {
         <p className="text-muted-foreground">Write something...</p>
       </div>
 
-      {/* Filters and Sorting */}
-      <div className="space-y-3">
-        {/* Category filters */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(category.id)}
-              className="whitespace-nowrap"
-            >
-              {category.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Sort and Filter Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Sort Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <SortDesc className="h-4 w-4" />
-                  Sort by
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuLabel>Sort threads by</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => setSortBy("recent")}
-                  className={sortBy === "recent" ? "bg-accent" : ""}
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Most Recent
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setSortBy("popular")}
-                  className={sortBy === "popular" ? "bg-accent" : ""}
-                >
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Most Popular
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setSortBy("most-commented")}
-                  className={sortBy === "most-commented" ? "bg-accent" : ""}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Most Commented
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-          </div>
-
-          {/* Thread count */}
-          <p className="text-sm text-muted-foreground">
-            {filteredAndSortedThreads.length} thread{filteredAndSortedThreads.length !== 1 ? 's' : ''}
-          </p>
-        </div>
+      {/* Category filters */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        {categories.map((category) => (
+          <Button
+            key={category.id}
+            variant={selectedCategory === category.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory(category.id)}
+            className="whitespace-nowrap"
+          >
+            {category.label}
+          </Button>
+        ))}
       </div>
-
 
       {/* Threads list */}
       <div className="space-y-3">
-        {filteredAndSortedThreads.map((thread) => (
+        {currentThreads.map((thread) => (
           <ThreadCardV2 
             key={thread.id} 
             thread={thread}
@@ -152,7 +87,7 @@ export default function ThreadsPage() {
           />
         ))}
         
-        {filteredAndSortedThreads.length === 0 && (
+        {currentThreads.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
               No threads found. Be the first to start a discussion!
