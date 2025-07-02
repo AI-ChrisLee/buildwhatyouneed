@@ -35,7 +35,8 @@ export default function LandingPage() {
     if (formData.email.trim()) {
       // Save lead to database
       try {
-        const response = await fetch('/api/leads', {
+        // Temporarily use debug endpoint that bypasses RLS
+        const response = await fetch('/api/leads-debug', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -55,6 +56,11 @@ export default function LandingPage() {
         if (!response.ok) {
           const errorData = await response.json()
           console.error('Lead API error:', response.status, errorData)
+          // Show the actual error
+          alert(`Error saving lead: ${errorData.error || 'Unknown error'}`)
+        } else {
+          const successData = await response.json()
+          console.log('Lead saved successfully:', successData)
         }
       } catch (error) {
         console.error('Error saving lead:', error)
