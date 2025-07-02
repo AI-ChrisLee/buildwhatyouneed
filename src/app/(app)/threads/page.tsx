@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { mockThreads } from "@/lib/mock-data"
 import { ThreadCardV2 } from "@/components/thread-card-v2"
 import { NewThreadDialog } from "@/components/new-thread-dialog"
-import { ThreadDetailDialog } from "@/components/thread-detail-dialog"
+import { useRouter } from "next/navigation"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,10 +37,9 @@ const threadsWithExtras = mockThreads.map((thread, i) => ({
 type SortOption = "recent" | "popular" | "most-commented"
 
 export default function ThreadsPage() {
+  const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [isNewThreadOpen, setIsNewThreadOpen] = useState(false)
-  const [selectedThread, setSelectedThread] = useState<typeof threadsWithExtras[0] | null>(null)
-  const [isThreadDetailOpen, setIsThreadDetailOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>("recent")
 
   // Filter and sort threads
@@ -62,8 +61,7 @@ export default function ThreadsPage() {
     })
 
   const handleThreadClick = (thread: typeof threadsWithExtras[0]) => {
-    setSelectedThread(thread)
-    setIsThreadDetailOpen(true)
+    router.push(`/threads/${thread.id}`)
   }
 
   return (
@@ -168,16 +166,10 @@ export default function ThreadsPage() {
         )}
       </div>
 
-      {/* Dialogs */}
+      {/* New Thread Dialog */}
       <NewThreadDialog 
         open={isNewThreadOpen}
         onOpenChange={setIsNewThreadOpen}
-      />
-      
-      <ThreadDetailDialog
-        thread={selectedThread}
-        open={isThreadDetailOpen}
-        onOpenChange={setIsThreadDetailOpen}
       />
     </div>
   )
