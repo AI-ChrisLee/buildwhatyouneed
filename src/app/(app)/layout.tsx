@@ -11,7 +11,7 @@ export default function AppLayout({
 }) {
   const pathname = usePathname()
   
-  // Show community badge only on these pages
+  // Show community badge only on these pages (not on about since it has its own)
   const showCommunityBadge = ['/threads', '/classroom', '/calendar'].includes(pathname)
 
   return (
