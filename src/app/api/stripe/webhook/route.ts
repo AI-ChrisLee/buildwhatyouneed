@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
@@ -48,7 +48,8 @@ export async function POST(request: Request) {
     )
   }
 
-  const supabase = createClient()
+  // Use service role client for webhook operations
+  const supabase = createServiceClient()
 
   console.log(`Received webhook event: ${event.type}`)
 
@@ -66,7 +67,8 @@ export async function POST(request: Request) {
           }
 
           // Create Stripe customer record
-          const { error: customerError } = await supabase
+          console.log(`Creating stripe_customers record for user ${userId}`)
+          const { data: customerData, error: customerError } = await supabase
             .from('stripe_customers')
             .upsert({
               user_id: userId,
@@ -75,14 +77,22 @@ export async function POST(request: Request) {
             .select()
           
           if (customerError) {
-            console.error('Failed to create stripe customer:', customerError)
+            console.error('Failed to create stripe customer:', {
+              error: customerError,
+              details: customerError.details,
+              hint: customerError.hint,
+              message: customerError.message
+            })
+          } else {
+            console.log('Stripe customer created successfully:', customerData)
           }
 
           // Get the subscription
           const subscriptionId = session.subscription as string
           
           // Create subscription record with minimal data
-          const { error: subError } = await supabase
+          console.log(`Creating stripe_subscriptions record for subscription ${subscriptionId}`)
+          const { data: subData, error: subError } = await supabase
             .from('stripe_subscriptions')
             .upsert({
               id: subscriptionId,
@@ -93,7 +103,14 @@ export async function POST(request: Request) {
             .select()
           
           if (subError) {
-            console.error('Failed to create subscription:', subError)
+            console.error('Failed to create subscription:', {
+              error: subError,
+              details: subError.details,
+              hint: subError.hint,
+              message: subError.message
+            })
+          } else {
+            console.log('Subscription created successfully:', subData)
           }
 
           console.log(`Subscription created for user ${userId}`)
@@ -129,7 +146,14 @@ export async function POST(request: Request) {
               .select()
             
             if (createError) {
-              console.error('Failed to create subscription from webhook:', createError)
+              console.error('Failed to create subscription from webhook:', {
+                error: createError,
+                details: createError.details,
+                hint: createError.hint,
+                message: createError.message
+              })
+            } else {
+              console.log('Subscription created successfully from customer.subscription.created event')
             }
             console.log(`Subscription ${subscription.id} created with status ${subscription.status}`)
           }
@@ -150,7 +174,14 @@ export async function POST(request: Request) {
             .eq('id', subscription.id)
           
           if (updateError) {
-            console.error('Failed to update subscription:', updateError)
+            console.error('Failed to update subscription:', {
+              error: updateError,
+              details: updateError.details,
+              hint: updateError.hint,
+              message: updateError.message
+            })
+          } else {
+            console.log(`Subscription ${subscription.id} updated successfully`)
           }
 
           console.log(`Subscription ${subscription.id} updated to ${subscription.status}`)
@@ -170,7 +201,14 @@ export async function POST(request: Request) {
           .eq('id', subscription.id)
         
         if (cancelError) {
-          console.error('Failed to cancel subscription:', cancelError)
+          console.error('Failed to cancel subscription:', {
+            error: cancelError,
+            details: cancelError.details,
+            hint: cancelError.hint,
+            message: cancelError.message
+          })
+        } else {
+          console.log(`Subscription ${subscription.id} cancelled successfully`)
         }
 
         console.log(`Subscription ${subscription.id} canceled`)

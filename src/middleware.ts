@@ -43,8 +43,8 @@ export async function middleware(request: NextRequest) {
     const communityRoutes = ['/threads', '/classroom', '/calendar', '/about', '/profile']
     const isCommunityRoute = communityRoutes.some(route => pathname.startsWith(route))
     
-    // Payment page needs auth but not subscription
-    if (pathname === '/payment') {
+    // Payment pages need auth but not subscription
+    if (pathname === '/payment' || pathname === '/payment/success') {
       return response
     }
     
