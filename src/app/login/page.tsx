@@ -1,15 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AuthLeftSection } from "@/components/auth-left-section"
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
@@ -36,8 +37,18 @@ export default function LoginPage() {
       const result = await response.json()
 
       if (response.ok) {
-        // Redirect based on subscription status
-        router.push(result.data.redirectTo || '/payment')
+        // Check if we have a redirect parameter or stored stripe session
+        const redirect = searchParams.get('redirect')
+        const stripeSessionId = localStorage.getItem('stripe_session_id')
+        
+        if (redirect === 'payment-success' && stripeSessionId) {
+          // User came from payment, redirect back to payment success
+          router.push(`/payment-success?session_id=${stripeSessionId}`)
+          localStorage.removeItem('stripe_session_id')
+        } else {
+          // Normal login flow - redirect based on subscription status
+          router.push(result.data.redirectTo || '/payment')
+        }
       } else {
         alert(result.error || 'Login failed')
       }
@@ -126,5 +137,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { AuthLeftSection } from "@/components/auth-left-section"
 import { useRouter } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Lock, CreditCard } from "lucide-react"
+import { Lock } from "lucide-react"
 
 export default function PaymentPage() {
   const router = useRouter()
@@ -14,12 +13,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [userEmail, setUserEmail] = useState("")
-  const [formData, setFormData] = useState({
-    cardNumber: "",
-    expiry: "",
-    cvc: "",
-    name: ""
-  })
+  const [error, setError] = useState("")
 
   useEffect(() => {
     checkAuth()
@@ -58,6 +52,7 @@ export default function PaymentPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setError("")
 
     try {
       // Get current user
@@ -85,10 +80,11 @@ export default function PaymentPage() {
         // Redirect to Stripe checkout
         window.location.href = result.url
       } else {
-        alert(result.error || 'Payment setup failed')
+        setError(result.error || 'Payment setup failed. Please try again.')
       }
-    } catch (error) {
-      alert('Something went wrong. Please try again.')
+    } catch (error: any) {
+      console.error('Payment error:', error)
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -154,11 +150,16 @@ export default function PaymentPage() {
                   </div>
                 </div>
 
+                {error && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="text-sm text-muted-foreground">
                     Logged in as: <span className="font-medium">{userEmail}</span>
                   </div>
-
                   <Button 
                     type="submit" 
                     size="lg" 
@@ -180,6 +181,10 @@ export default function PaymentPage() {
                     <p>Cancel anytime • 7-day money-back guarantee</p>
                   </div>
                 </form>
+
+                <div className="text-center text-sm text-muted-foreground">
+                  Having issues? <a href="/login" className="underline">Try logging in again</a>
+                </div>
               </div>
             </div>
           </div>

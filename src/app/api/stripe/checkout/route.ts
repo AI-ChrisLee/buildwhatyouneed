@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/about`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/threads`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment`,
       client_reference_id: userId,
       customer_email: user.email,
