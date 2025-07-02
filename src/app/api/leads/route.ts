@@ -36,15 +36,21 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Lead creation error:', error)
-      // Still return success to not break the user flow
-      return NextResponse.json({ data: { message: 'Lead captured' } })
+      // Return error for debugging
+      return NextResponse.json(
+        { error: error.message, code: error.code, details: error.details },
+        { status: 400 }
+      )
     }
 
     return NextResponse.json({ data })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Lead API error:', error)
-    // Still return success to not break the user flow
-    return NextResponse.json({ data: { message: 'Lead captured' } })
+    // Return error for debugging
+    return NextResponse.json(
+      { error: error.message || 'Failed to create lead' },
+      { status: 500 }
+    )
   }
 }
 
