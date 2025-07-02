@@ -15,30 +15,45 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create user
-    const { data, error } = await supabase.auth.signUp({
+    // Create user without email confirmation
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name,
         },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/payment`,
       },
     })
 
-    if (error) {
+    if (signUpError) {
       return NextResponse.json(
-        { error: error.message },
+        { error: signUpError.message },
         { status: 400 }
       )
     }
 
-    // User created - they're now a free member
-    // They can only access /checkout until they pay
+    // Auto sign in the user after signup
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (signInError) {
+      return NextResponse.json(
+        { error: 'Account created but could not sign in automatically' },
+        { status: 400 }
+      )
+    }
+
+    // User created and signed in - they're now a free member
+    // They can only access /payment until they pay
     return NextResponse.json({
       data: {
-        user: data.user,
-        message: 'Account created! Redirecting to checkout...'
+        user: signInData.user,
+        session: signInData.session,
+        message: 'Account created! Redirecting to payment...'
       }
     })
   } catch (error) {
