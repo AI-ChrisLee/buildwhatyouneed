@@ -18,7 +18,7 @@ export default function SignupPage() {
               <div className="space-y-6">
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold">
-                    Save this system & test it free for 7 days
+                    Save this system with 7-day guarantee
                   </h2>
                   <p className="text-muted-foreground">
                     Join a community of builders who stopped bleeding money to overpriced software.
@@ -61,12 +61,12 @@ export default function SignupPage() {
                       <Link href="/privacy" className="underline">
                         privacy policies
                       </Link>
-                      . 7-day free trial, then $97/month. Cancel anytime — no charge if you cancel during trial.
+                      . $97/month with 7-day 100% money-back guarantee. Build your first tool or get every penny back.
                     </label>
                   </div>
 
                   <Button size="lg" className="w-full h-12 text-lg">
-                    Create an account & get started free
+                    Create account & start building
                   </Button>
                 </form>
 
