@@ -312,7 +312,7 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
                               className={`h-8 ${isLikedComment ? "text-primary" : ""}`}
                             >
                               <ThumbsUp className={`h-3 w-3 mr-1 ${isLikedComment ? "fill-current" : ""}`} />
-                              {(comment.likes || 0) + (isLikedComment ? 1 : 0)}
+                              {0 + (isLikedComment ? 1 : 0)}
                             </Button>
                             <Button
                               variant="ghost"

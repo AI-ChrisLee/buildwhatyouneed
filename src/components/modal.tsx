@@ -111,7 +111,7 @@ export function ConfirmModal({
         </>
       }
     >
-      {/* Empty content for confirmation modals */}
+      <div />
     </Modal>
   )
 }
