@@ -51,8 +51,8 @@ Admin Routes (Future):
 
 ### 1. New Member Onboarding Flow
 ```
-Landing Page (/)
-    ↓ [Join The Revolution]
+Opt in Page (/)
+    ↓ [Name and email]
 Sales Page (/join)
     ↓ [Secure Your Spot]
 Signup (/signup)

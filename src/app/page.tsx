@@ -1,17 +1,55 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Play } from "lucide-react"
+import { Play, Lock, ArrowRight } from "lucide-react"
 
 export default function LandingPage() {
+  const [formStep, setFormStep] = useState(0)
+  const [formData, setFormData] = useState({ name: "", email: "" })
+
+  const handleInitialClick = () => {
+    setFormStep(1)
+  }
+
+  const handleVideoClick = () => {
+    // Scroll to form section
+    const formElement = document.getElementById('smart-form')
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    // Advance to first form step
+    setFormStep(1)
+  }
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (formData.name.trim()) {
+      setFormStep(2)
+    }
+  }
+
+  const handleFinalSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (formData.email.trim()) {
+      // Handle final submission here
+      console.log("Form submitted:", formData)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-4xl mx-auto">
         <div className="text-center space-y-8">
           {/* VSL */}
           <div className="relative mx-auto max-w-2xl">
-            <div className="aspect-video bg-black rounded-lg shadow-2xl overflow-hidden">
+            <div 
+              onClick={handleVideoClick}
+              className="aspect-video bg-black rounded-lg shadow-2xl overflow-hidden cursor-pointer group"
+            >
               <div className="w-full h-full flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
+                <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center group-hover:bg-white/20 transition-colors">
                   <Play className="h-10 w-10 text-white ml-1" fill="white" />
                 </div>
               </div>
@@ -19,34 +57,101 @@ export default function LandingPage() {
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-            Copy and Paste My $10K/month
-            <br />
-            SaaS Replacement System
+          <h1 className="text-4xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+            Build What You Need : <br /> 
+            How Entrepreneurs Build $419/mo SaaS in 3 Hours
           </h1>
 
           {/* Subtitle */}
           <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            In this video I break down the exact code I used to replace
-            $10,847/month worth of SaaS tools in just 4 hours
+            I'll show you the exact AI prompts and process to replace any SaaS
           </p>
 
-          {/* Form */}
-          <form className="max-w-md mx-auto space-y-4">
-            <Input
-              type="text"
-              placeholder="Your name"
-              className="h-12 text-base"
-            />
-            <Input
-              type="email"
-              placeholder="Your email"
-              className="h-12 text-base"
-            />
-            <Button size="lg" className="w-full h-12 text-lg">
-              Get Instant Access
-            </Button>
-          </form>
+          {/* Smart Form */}
+          <div id="smart-form" className="max-w-md mx-auto space-y-4">
+            {/* Step 0: Initial Button */}
+            {formStep === 0 && (
+              <>
+                <Button 
+                  size="lg" 
+                  className="w-full h-12 text-lg flex items-center justify-center gap-2"
+                  onClick={handleInitialClick}
+                >
+                  <Lock className="h-5 w-5" />
+                  Unlock Template Now
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  100% Free & Secure
+                </p>
+              </>
+            )}
+
+            {/* Step 1: Name Input */}
+            {formStep === 1 && (
+              <>
+                <form onSubmit={handleNameSubmit} className="space-y-4">
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Your name"
+                      className="h-12 text-base"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      autoFocus
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      (1 of 2)
+                    </span>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full h-12 text-lg flex items-center justify-center gap-2"
+                    disabled={!formData.name.trim()}
+                  >
+                    Next
+                    <ArrowRight className="h-5 w-5" />
+                  </Button>
+                </form>
+                <p className="text-sm text-muted-foreground">
+                  100% Free & Secure
+                </p>
+              </>
+            )}
+
+            {/* Step 2: Email Input */}
+            {formStep === 2 && (
+              <>
+                <form onSubmit={handleFinalSubmit} className="space-y-4">
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      placeholder="Your email"
+                      className="h-12 text-base"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      autoFocus
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      (2 of 2)
+                    </span>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="w-full h-12 text-lg flex items-center justify-center gap-2"
+                    disabled={!formData.email.trim()}
+                  >
+                    <Lock className="h-5 w-5" />
+                    Unlock Template Now
+                  </Button>
+                </form>
+                <p className="text-sm text-muted-foreground">
+                  100% Free & Secure
+                </p>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -14,37 +14,31 @@ export default function SignupPage() {
             <div className="p-8 md:p-12 space-y-6 border-r">
               <div className="space-y-4">
                 <h1 className="text-3xl font-bold tracking-tight">
-                  The $10K/month SaaS Replacement System has been shared with you!
+                  The Build What You Need System has been shared with you!
                 </h1>
                 <p className="text-lg text-muted-foreground">
-                  Save this system to your account and start replacing overpriced software with code you control.
+                  Save this system to your account and start building what SaaS companies charge you thousands for.
                 </p>
               </div>
 
               {/* Badge */}
               <div className="flex justify-center">
-                <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
-                  </span>
-                  Limited Time: Founding Member Price
+                <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium">
+                  🔥 Founding Member Exclusive: $97/month forever
                 </div>
               </div>
 
               {/* Video */}
               <div className="aspect-video bg-black rounded-lg shadow-xl overflow-hidden">
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center mx-auto cursor-pointer hover:bg-white/20 transition-all hover:scale-105">
-                      <Play className="h-10 w-10 text-white ml-1" fill="white" />
-                    </div>
-                    <p className="text-white text-lg font-medium">
-                      Watch: The exact code that killed $10k in SaaS
-                    </p>
+                  <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
+                    <Play className="h-10 w-10 text-white ml-1" fill="white" />
                   </div>
                 </div>
               </div>
+              <p className="text-center text-sm text-muted-foreground">
+                "Why Only 1000 Builders Get This Price (And What Happens at 1001)"
+              </p>
             </div>
 
             {/* Right Column - Signup Form */}
@@ -52,7 +46,7 @@ export default function SignupPage() {
               <div className="space-y-6">
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold">
-                    Save this system & test it free for 14 days
+                    Save this system & test it free for 7 days
                   </h2>
                   <p className="text-muted-foreground">
                     Join a community of builders who stopped bleeding money to overpriced software.
@@ -95,7 +89,7 @@ export default function SignupPage() {
                       <Link href="/privacy" className="underline">
                         privacy policies
                       </Link>
-                      . 14-day free trial, then $97/month. Cancel anytime — no charge if you cancel during trial.
+                      . 7-day free trial, then $97/month. Cancel anytime — no charge if you cancel during trial.
                     </label>
                   </div>
 
