@@ -35,7 +35,7 @@ export default function LandingPage() {
     if (formData.email.trim()) {
       // Save lead to database
       try {
-        await fetch('/api/leads', {
+        const response = await fetch('/api/leads', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -50,6 +50,12 @@ export default function LandingPage() {
             utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign'),
           }),
         })
+        
+        // Log response for debugging
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Lead API error:', response.status, errorData)
+        }
       } catch (error) {
         console.error('Error saving lead:', error)
         // Don't block the user flow
