@@ -6,6 +6,12 @@ export async function middleware(request: NextRequest) {
   // Update session first
   const response = await updateSession(request)
   
+  // Skip auth checks for API routes
+  const pathname = request.nextUrl.pathname
+  if (pathname.startsWith('/api/')) {
+    return response
+  }
+  
   // Create supabase client to check auth
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +28,6 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const pathname = request.nextUrl.pathname
 
   // Public routes that don't require auth
   const publicRoutes = ['/', '/join', '/login', '/signup', '/terms', '/privacy']
@@ -50,7 +55,7 @@ export async function middleware(request: NextRequest) {
         .select('status')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single()
+        .maybeSingle()
 
       // No active subscription - redirect to payment
       if (!subscription && pathname !== '/payment') {
@@ -66,7 +71,7 @@ export async function middleware(request: NextRequest) {
         .select('status')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single()
+        .maybeSingle()
 
       return NextResponse.redirect(
         new URL(subscription ? '/threads' : '/payment', request.url)

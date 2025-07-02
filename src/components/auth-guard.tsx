@@ -36,7 +36,7 @@ export function AuthGuard({
           .select('status')
           .eq('user_id', user.id)
           .eq('status', 'active')
-          .single()
+          .maybeSingle()
 
         if (!subscription) {
           router.push('/payment')

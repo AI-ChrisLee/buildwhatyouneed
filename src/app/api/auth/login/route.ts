@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       .select('status')
       .eq('user_id', data.user.id)
       .eq('status', 'active')
-      .single()
+      .maybeSingle()
 
     return NextResponse.json({
       data: {

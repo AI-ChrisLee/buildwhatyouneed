@@ -21,19 +21,17 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify user exists and get their email
-    const { data: user } = await supabase
-      .from('users')
-      .select('email')
-      .eq('id', userId)
-      .single()
-
-    if (!user) {
+    // Get current user session to verify and get email
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user || user.id !== userId) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       )
     }
+    
+    const userEmail = user.email || ''
 
     if (!process.env.STRIPE_PRICE_ID) {
       return NextResponse.json(
@@ -62,7 +60,7 @@ export async function POST(request: Request) {
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/threads`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment`,
       client_reference_id: userId,
-      customer_email: user.email,
+      customer_email: userEmail,
       metadata: {
         userId,
       },
