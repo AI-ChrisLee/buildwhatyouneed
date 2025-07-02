@@ -13,9 +13,6 @@ export default function ProfilePage() {
   const [isEditingName, setIsEditingName] = useState(false)
   const [name, setName] = useState("John Doe")
   const [tempName, setTempName] = useState(name)
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
 
   const handleSaveName = () => {
     setName(tempName)
@@ -27,14 +24,6 @@ export default function ProfilePage() {
     setIsEditingName(false)
   }
 
-  const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault()
-    // In real app, would validate and update password
-    console.log("Password change submitted")
-    setCurrentPassword("")
-    setNewPassword("")
-    setConfirmPassword("")
-  }
 
   // Mock user data
   const user = {
@@ -82,7 +71,6 @@ export default function ProfilePage() {
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="password">Password</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
         </TabsList>
 
@@ -196,51 +184,6 @@ export default function ProfilePage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="password" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>Update your password</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="current-password">Current Password</Label>
-                  <Input
-                    id="current-password"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Update Password
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="billing" className="space-y-4">
           <Card>
