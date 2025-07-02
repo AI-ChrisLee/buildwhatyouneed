@@ -44,8 +44,10 @@ export default function SignupPage() {
       const result = await response.json()
 
       if (response.ok) {
-        // Redirect to payment page after successful signup
-        router.push('/payment')
+        // Store email for payment page
+        localStorage.setItem('userEmail', formData.email)
+        // Redirect to simplified payment page after successful signup
+        router.push('/payment-v2')
       } else {
         alert(result.error || 'Signup failed')
       }

@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Public routes that don't require auth
-  const publicRoutes = ['/', '/join', '/login', '/signup', '/terms', '/privacy']
+  const publicRoutes = ['/', '/join', '/login', '/signup', '/terms', '/privacy', '/payment-v2']
   const isPublicRoute = publicRoutes.includes(pathname)
 
   // If not logged in and trying to access protected route
@@ -48,8 +48,8 @@ export async function middleware(request: NextRequest) {
         .single()
 
       // No active subscription - redirect to payment
-      if (!subscription && pathname !== '/payment') {
-        return NextResponse.redirect(new URL('/payment', request.url))
+      if (!subscription && pathname !== '/payment' && pathname !== '/payment-v2') {
+        return NextResponse.redirect(new URL('/payment-v2', request.url))
       }
     }
 
@@ -64,7 +64,7 @@ export async function middleware(request: NextRequest) {
         .single()
 
       return NextResponse.redirect(
-        new URL(subscription ? '/threads' : '/payment', request.url)
+        new URL(subscription ? '/threads' : '/payment-v2', request.url)
       )
     }
   }
