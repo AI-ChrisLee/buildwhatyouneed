@@ -79,34 +79,43 @@ export default function SignupPage() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Input
+                      id="name"
+                      name="name"
                       type="text"
                       placeholder="First and last name"
                       className="h-12 text-base"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
+                      autoComplete="name"
                     />
                   </div>
 
                   <div>
                     <Input
+                      id="email"
+                      name="email"
                       type="email"
                       placeholder="Business email address"
                       className="h-12 text-base"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
+                      autoComplete="email"
                     />
                   </div>
 
                   <div>
                     <Input
+                      id="password"
+                      name="password"
                       type="password"
                       placeholder="Password"
                       className="h-12 text-base"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       required
+                      autoComplete="new-password"
                     />
                   </div>
 
