@@ -1,13 +1,14 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { BookOpen, Clock, Plus, Edit, Trash2, GripVertical } from "lucide-react"
+import { BookOpen, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Course } from "@/lib/supabase"
 import { useMembership } from "@/hooks/use-membership"
+import { CourseCard } from "@/components/course-card"
+import PaymentModal from "@/components/payment-modal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,29 +22,49 @@ import {
 
 interface CourseWithCount extends Course {
   lesson_count?: number
+  is_free?: boolean
 }
 
 export default function ClassroomPage() {
   const [courses, setCourses] = useState<CourseWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [userTier, setUserTier] = useState<'free' | 'paid'>('free')
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const supabase = createClient()
   const { MembershipGate, AccessDeniedModal } = useMembership()
 
   useEffect(() => {
     async function fetchCoursesAndCheckAdmin() {
       try {
-        // Check if user is admin
+        // Check if user is admin and get tier
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           const { data: userData } = await supabase
             .from('users')
-            .select('is_admin')
+            .select('is_admin, membership_tier')
             .eq('id', user.id)
             .single()
           
           setIsAdmin(userData?.is_admin || false)
+          
+          // Check if user has paid access
+          const { data: subscription } = await supabase
+            .from('stripe_subscriptions')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .limit(1)
+            .maybeSingle()
+          
+          const hasPaidAccess = userData?.is_admin || 
+                               userData?.membership_tier === 'paid' || 
+                               !!subscription
+          
+          setUserTier(hasPaidAccess ? 'paid' : 'free')
+          setCurrentUser(user)
         }
 
         // Fetch courses
@@ -124,61 +145,18 @@ export default function ClassroomPage() {
 
           {/* Course Grid - 2 columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {courses.map((course) => (
-            <div key={course.id} className="relative group">
-              <Link href={`/classroom/${course.id}`}>
-                <div className="overflow-hidden rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer">
-                  {/* Course Image */}
-                  <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <BookOpen className="h-10 w-10 text-slate-500" />
-                    </div>
-                    {isAdmin && (
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          asChild
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Link href={`/admin/courses/${course.id}`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setDeleteId(course.id)
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-4 md:p-5 space-y-3">
-                    {/* Title */}
-                    <h3 className="font-medium text-base md:text-lg line-clamp-1">{course.title}</h3>
-                    
-                    {/* Description */}
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {course.description}
-                    </p>
-                    
-                    {/* Lesson Count */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>{course.lesson_count || 0} lessons</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))}
+            {courses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                isAdmin={isAdmin}
+                userTier={userTier}
+                onDelete={(id) => setDeleteId(id)}
+                onLockedClick={() => {
+                  setShowPaymentModal(true)
+                }}
+              />
+            ))}
           </div>
         </div>
 
@@ -202,6 +180,13 @@ export default function ClassroomPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
         </AlertDialog>
+        
+        {/* Payment Modal */}
+        <PaymentModal
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          user={currentUser}
+        />
         
         <AccessDeniedModal />
       </div>

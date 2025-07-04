@@ -9,6 +9,7 @@ export function useMembership() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
+  const [membershipTier, setMembershipTier] = useState<'free' | 'paid' | null>(null)
   const [showAccessDenied, setShowAccessDenied] = useState(false)
   const [deniedFeature, setDeniedFeature] = useState("")
   const supabase = createClient()
@@ -44,27 +45,44 @@ export function useMembership() {
 
       setUser(user)
 
-      // Check if user is admin
+      // Check if user is admin or has free tier
       const { data: userData } = await supabase
         .from('users')
-        .select('is_admin')
+        .select('is_admin, membership_tier')
         .eq('id', user.id)
         .single()
 
       if (userData?.is_admin) {
         setHasAccess(true)
+        setMembershipTier('paid') // Admins have full access
         setLoading(false)
         return
       }
 
-      // Check if user has active subscription
-      const { data: subscriptions } = await supabase
-        .from('stripe_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
+      // Set membership tier
+      if (userData?.membership_tier === 'free') {
+        setMembershipTier('free')
+        // Free tier users have access to classroom only
+        setHasAccess(true)
+      } else if (userData?.membership_tier === 'paid') {
+        setMembershipTier('paid')
+        setHasAccess(true)
+      } else {
+        // Check if user has active subscription
+        const { data: subscriptions } = await supabase
+          .from('stripe_subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing', 'incomplete'])
 
-      setHasAccess(!!subscriptions && subscriptions.length > 0)
+        if (subscriptions && subscriptions.length > 0) {
+          setMembershipTier('paid')
+          setHasAccess(true)
+        } else {
+          setMembershipTier(null)
+          setHasAccess(false)
+        }
+      }
     } catch (error) {
       console.error('Error checking membership:', error)
       setHasAccess(false)
@@ -96,13 +114,17 @@ export function useMembership() {
         if (!user) {
           // Not logged in, redirect to signup
           router.push('/signup')
+        } else if (membershipTier === 'free' && feature !== 'Classroom') {
+          // Free tier can only access classroom
+          setDeniedFeature(feature)
+          setShowAccessDenied(true)
         } else if (!hasAccess) {
           // Logged in but no access, show modal
           setDeniedFeature(feature)
           setShowAccessDenied(true)
         }
       }
-    }, [loading, hasAccess, feature, user])
+    }, [loading, hasAccess, feature, user, membershipTier])
 
     if (loading) {
       return (
@@ -117,7 +139,7 @@ export function useMembership() {
       return null
     }
 
-    if (!hasAccess) {
+    if (!hasAccess || (membershipTier === 'free' && feature !== 'Classroom')) {
       return (
         <>
           <AccessDeniedModal 
@@ -142,7 +164,9 @@ export function useMembership() {
     user,
     loading,
     hasAccess,
+    membershipTier,
     requireMembership,
+    checkMembership,
     MembershipGate,
     AccessDeniedModal: () => (
       <AccessDeniedModal 

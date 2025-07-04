@@ -1,0 +1,11 @@
+# Build What You Need robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /payment-success
+Disallow: /payment-cancelled
+
+# Sitemap
+Sitemap: https://buildwhatyouneed.com/sitemap.xml

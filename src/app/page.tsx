@@ -12,6 +12,9 @@ import { isCurrentUserAdmin } from "@/lib/supabase/admin-actions"
 import PaymentModal from "@/components/payment-modal"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CommunityBadge } from "@/components/community-badge"
+import { FreeSignupModal } from "@/components/free-signup-modal"
+import { LoginModal } from "@/components/login-modal"
+import { cn } from "@/lib/utils"
 
 function HomePageContent() {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -22,6 +25,8 @@ function HomePageContent() {
   })
   const [recentMembers, setRecentMembers] = useState<any[]>([])
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showFreeSignupModal, setShowFreeSignupModal] = useState(false)
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [checkingPayment, setCheckingPayment] = useState(false)
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'none' | 'active' | 'past_due'>('loading')
@@ -29,8 +34,9 @@ function HomePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const content = {
-    title: "Build What You Need",
-    subtitle: "Stop paying for SaaS. Start building.",
+    title: "Build What You Need,",
+    titleSecondLine: "Nothing else.",
+    subtitle: "Join entrepreneurs vibe coding with AI. We're building our own SaaS tools instead of paying for overpriced subscriptions. Ship fast, own everything, pay nothing.",
     mainDescription: "The days of overpriced SaaS are over.",
     memberCount: "2k",
     onlineCount: "8",
@@ -197,102 +203,117 @@ function HomePageContent() {
         
         <div className="space-y-8">
             {/* Hero Section */}
-            <div className="space-y-4">
-              {/* Main Hero */}
-              <div className="rounded-xl overflow-hidden relative aspect-[16/9]">
-                {/* Different content based on selected image */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${
-                  selectedHeroImage === 0 ? 'from-gray-900 to-gray-800' :
-                  selectedHeroImage === 1 ? 'from-blue-900 to-blue-800' :
-                  selectedHeroImage === 2 ? 'from-green-900 to-green-800' :
-                  selectedHeroImage === 3 ? 'from-purple-900 to-purple-800' :
-                  'from-pink-900 to-pink-800'
-                }`}>
-                  {/* Placeholder for Wistia video or images - will be replaced with actual content */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    {selectedHeroImage === 0 ? (
-                      // Main video placeholder
-                      <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                        </svg>
-                      </div>
-                    ) : (
-                      // Image placeholder
-                      <div className="text-center">
-                        <div className="text-white/60 text-2xl font-medium">Image {selectedHeroImage}</div>
-                        <p className="text-white/40 text-sm mt-2">Placeholder for actual image content</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            <div className="space-y-6">
+              {/* Title and Subtitle */}
+              <div className="space-y-3">
+                <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+                  {content.title}<br />
+                  {content.titleSecondLine}
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-3xl">
+                  {content.subtitle}
+                </p>
               </div>
-              
-              {/* Thumbnail Images */}
-              <div className="grid grid-cols-5 gap-2">
-                {[0, 1, 2, 3, 4].map((index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedHeroImage(index)}
-                    className={`relative aspect-video rounded-lg overflow-hidden transition-all ${
-                      selectedHeroImage === index 
-                        ? 'ring-2 ring-primary ring-offset-2' 
-                        : 'hover:opacity-80'
-                    }`}
-                  >
-                    <div className={`w-full h-full bg-gradient-to-br ${
-                      index === 0 ? 'from-gray-700 to-gray-600' :
-                      index === 1 ? 'from-blue-700 to-blue-600' :
-                      index === 2 ? 'from-green-700 to-green-600' :
-                      index === 3 ? 'from-purple-700 to-purple-600' :
-                      'from-pink-700 to-pink-600'
-                    }`}>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        {index === 0 ? (
-                          <svg className="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
+
+              {/* Main Preview */}
+              <div className="space-y-4">
+                <div className="rounded-xl overflow-hidden relative aspect-[16/9] bg-black transition-all hover:shadow-xl">
+                  {/* Different content based on selected image */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${
+                    selectedHeroImage === 0 ? 'from-gray-900 to-gray-800' :
+                    selectedHeroImage === 1 ? 'from-blue-900 to-blue-800' :
+                    selectedHeroImage === 2 ? 'from-green-900 to-green-800' :
+                    selectedHeroImage === 3 ? 'from-purple-900 to-purple-800' :
+                    'from-pink-900 to-pink-800'
+                  }`}>
+                    {/* Placeholder for Wistia video or images - will be replaced with actual content */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {selectedHeroImage === 0 ? (
+                        // Main video placeholder
+                        <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                           </svg>
-                        ) : (
-                          <span className="text-white/60 text-xs">Image {index}</span>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        // Image placeholder
+                        <div className="text-center">
+                          <div className="text-white/60 text-2xl font-medium">Image {selectedHeroImage}</div>
+                          <p className="text-white/40 text-sm mt-2">Placeholder for actual image content</p>
+                        </div>
+                      )}
                     </div>
-                  </button>
-                ))}
+                  </div>
+                </div>
+                
+                {/* Thumbnail Images - Horizontal */}
+                <div className="flex gap-2">
+                  {[0, 1, 2, 3, 4].map((index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedHeroImage(index)}
+                      className={`relative aspect-[16/9] w-[120px] rounded-lg overflow-hidden transition-all duration-300 ${
+                        selectedHeroImage === index 
+                          ? 'ring-2 ring-primary ring-offset-2 scale-105' 
+                          : 'hover:opacity-80 hover:scale-105'
+                      }`}
+                    >
+                      <div className={`w-full h-full bg-gradient-to-br ${
+                        index === 0 ? 'from-gray-700 to-gray-600' :
+                        index === 1 ? 'from-blue-700 to-blue-600' :
+                        index === 2 ? 'from-green-700 to-green-600' :
+                        index === 3 ? 'from-purple-700 to-purple-600' :
+                        'from-pink-700 to-pink-600'
+                      }`}>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          {index === 0 ? (
+                            <svg className="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                            </svg>
+                          ) : (
+                            <span className="text-white/60 text-xs">{index}</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <Lock className="h-4 w-4" />
                 <span>Private</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span className="font-semibold text-foreground">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || '2.1k'} members</span>
+                <span className="font-semibold">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || '2.1k'} members</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground">$97/month</span>
+                <DollarSign className="h-4 w-4" />
+                <span className="font-semibold">$97/month</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-                <span>By AI Chris Lee</span>
+                <span>By AI Chris Lee ⭐</span>
               </div>
             </div>
+
 
             {/* Recent Members */}
             {recentMembers.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-3">Recent members</h3>
                 <div className="flex -space-x-2">
-                  {recentMembers.slice(0, 10).map((member) => (
+                  {recentMembers.slice(0, 10).map((member, index) => (
                     <div key={member.id} className="relative group">
                       <AvatarGradient 
                         seed={member.email} 
-                        className="h-10 w-10 rounded-full border-2 border-background ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2 group-hover:ring-offset-background"
+                        className="h-10 w-10 rounded-full border-2 border-background ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2 group-hover:ring-offset-background group-hover:scale-110"
                       />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 whitespace-nowrap transition-opacity">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 whitespace-nowrap transition-all">
                         {member.full_name || member.email?.split('@')[0]}
                       </div>
                     </div>
@@ -307,53 +328,85 @@ function HomePageContent() {
             )}
 
             {/* Description */}
-            <div className="space-y-6">
-              <p className="text-base leading-relaxed">
+            <div className="space-y-6 text-base leading-relaxed">
+              <p className="font-medium">
                 {content.mainDescription}
               </p>
               
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Learn how to:</h3>
-                <div className="space-y-3">
+              <div className="space-y-4">
+                <p>Learn how to:</p>
+                <div className="pl-4 space-y-2">
                   {content.learnItems.map((item, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-xs font-medium">{index + 1}</span>
-                      </div>
-                      <span className="text-sm leading-relaxed">{item}</span>
+                    <div key={index} className="flex gap-3">
+                      <span className="text-muted-foreground">{index + 1}</span>
+                      <span>{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Here's what you get:</h3>
-                <div className="grid gap-3">
+              <div className="space-y-4">
+                <p>Here's what you get:</p>
+                <div className="pl-4 space-y-2">
                   {content.benefitItems.map((item, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
-                      <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm leading-relaxed">{item}</span>
+                    <div key={index} className="flex gap-3">
+                      <span className="text-muted-foreground">•</span>
+                      <span>{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-lg bg-muted/50 p-6 text-center space-y-4">
-                <p className="text-base">
-                  {content.footerText}
+              <div className="space-y-4 pt-6">
+                <p>
+                  {user && subscriptionStatus === 'active' 
+                    ? content.footerText 
+                    : "Start with our free course and upgrade anytime."}
                 </p>
-                <Button 
-                  onClick={handleJoinClick} 
-                  size="lg" 
-                  className="min-w-[200px]"
-                  disabled={checkingPayment}
-                >
-                  {checkingPayment ? 'Loading...' : 
-                   (user && subscriptionStatus === 'active') ? 'View Community' : 
-                   'Join Now'}
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  Join while it lasts.
+                {user && subscriptionStatus === 'active' ? (
+                  <Button 
+                    onClick={() => router.push('/threads')} 
+                    size="lg" 
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium"
+                  >
+                    View Community
+                  </Button>
+                ) : user ? (
+                  // Logged in but no subscription
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => router.push('/classroom')} 
+                      size="lg" 
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium"
+                      disabled={checkingPayment}
+                    >
+                      {checkingPayment ? 'Loading...' : 'Access Free Course'}
+                    </Button>
+                    <Button 
+                      onClick={handleJoinClick} 
+                      size="lg" 
+                      variant="outline"
+                      className="w-full border-gray-900 text-gray-900 hover:bg-gray-100 h-14 text-base font-medium"
+                      disabled={checkingPayment}
+                    >
+                      Upgrade Now
+                    </Button>
+                  </div>
+                ) : (
+                  // Not logged in - only show free access
+                  <Button 
+                    onClick={() => setShowFreeSignupModal(true)} 
+                    size="lg" 
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    disabled={checkingPayment}
+                  >
+                    {checkingPayment ? 'Loading...' : 'Get Free Template'}
+                  </Button>
+                )}
+                <p className="text-sm text-muted-foreground text-center">
+                  {user && subscriptionStatus === 'active' 
+                    ? "Join while it lasts." 
+                    : "No credit card required for free access"}
                 </p>
               </div>
             </div>
@@ -375,14 +428,68 @@ function HomePageContent() {
           onOpenChange={setShowPaymentModal}
           user={user}
         />
+
+        {/* Free Signup Modal */}
+        <FreeSignupModal 
+          open={showFreeSignupModal}
+          onOpenChange={setShowFreeSignupModal}
+          onLoginClick={() => {
+            setShowFreeSignupModal(false)
+            setShowLoginModal(true)
+          }}
+        />
+
+        {/* Login Modal */}
+        <LoginModal
+          open={showLoginModal}
+          onOpenChange={setShowLoginModal}
+          onSignupClick={() => {
+            setShowLoginModal(false)
+            setShowFreeSignupModal(true)
+          }}
+        />
     </div>
   )
 }
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <HomePageContent />
-    </Suspense>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "EducationalOrganization",
+            "name": "Build What You Need by Chris",
+            "description": "Join 1000+ entrepreneurs vibe coding with AI. Learn to build your own SaaS tools, save thousands per month, and own everything.",
+            "url": "https://buildwhatyouneed.com",
+            "logo": "https://buildwhatyouneed.com/images/logo.png",
+            "founder": {
+              "@type": "Person",
+              "name": "Chris Lee",
+              "url": "https://buildwhatyouneed.com"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "97",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock",
+              "validFrom": "2025-07-04",
+              "name": "Build What You Need Membership",
+              "description": "Access to code templates, courses, and community support"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "reviewCount": "127"
+            }
+          })
+        }}
+      />
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+        <HomePageContent />
+      </Suspense>
+    </>
   )
 }

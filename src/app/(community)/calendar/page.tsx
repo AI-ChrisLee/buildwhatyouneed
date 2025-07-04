@@ -102,7 +102,7 @@ export default function CalendarPage() {
                 </div>
                 <Button asChild size="sm" className="w-full sm:w-auto">
                 <a 
-                  href="https://us06web.zoom.us/j/85179106602" 
+                  href="https://us06web.zoom.us/j/84104834932?pwd=ocd6IktbJbcL04d7ew5EL8iCbCMETI.1" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="gap-2"

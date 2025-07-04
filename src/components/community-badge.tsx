@@ -7,6 +7,7 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { SignupModal } from "@/components/signup-modal"
+import { FreeSignupModal } from "@/components/free-signup-modal"
 import { LoginModal } from "@/components/login-modal"
 import PaymentModal from "@/components/payment-modal"
 import { AvatarGradient } from "@/components/ui/avatar-gradient"
@@ -17,11 +18,13 @@ export function CommunityBadge() {
   const [recentMembers, setRecentMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showSignupModal, setShowSignupModal] = useState(false)
+  const [showFreeSignupModal, setShowFreeSignupModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [membershipTier, setMembershipTier] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
@@ -53,18 +56,18 @@ export function CommunityBadge() {
         .from('stripe_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing', 'incomplete'])
       
-      setHasActiveSubscription(!!subscriptions && subscriptions.length > 0)
-      
-      // Check if user is admin
+      // Check if user is admin and membership tier
       const { data: userData } = await supabase
         .from('users')
-        .select('is_admin')
+        .select('is_admin, membership_tier')
         .eq('id', user.id)
         .single()
       
+      setHasActiveSubscription(!!subscriptions && subscriptions.length > 0 || userData?.membership_tier === 'paid')
       setIsAdmin(userData?.is_admin || false)
+      setMembershipTier(userData?.membership_tier || null)
     }
   }
 
@@ -110,9 +113,9 @@ export function CommunityBadge() {
         
         <div className="space-y-4">
           <div>
-            <h4 className="font-medium mb-1">Build What You Need</h4>
+            <h4 className="font-medium mb-1">Build What You Need by Chris</h4>
             <p className="text-sm text-muted-foreground">
-              Learn to build your own tools and save thousands on SaaS subscriptions.
+              Join entrepreneurs vibe coding with AI. Ship fast, own everything, pay nothing.
             </p>
           </div>
 
@@ -120,11 +123,11 @@ export function CommunityBadge() {
           <div className="flex gap-6">
             <div>
               <p className="text-2xl font-semibold">{loading ? '...' : memberCount}</p>
-              <p className="text-xs text-muted-foreground">Members</p>
+              <p className="text-xs text-muted-foreground">Builders</p>
             </div>
             <div>
-              <p className="text-2xl font-semibold">{loading ? '...' : adminCount}</p>
-              <p className="text-xs text-muted-foreground">Admins</p>
+              <p className="text-2xl font-semibold">$97</p>
+              <p className="text-xs text-muted-foreground">/month</p>
             </div>
           </div>
 
@@ -132,15 +135,15 @@ export function CommunityBadge() {
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>Weekly SaaS teardowns</span>
+              <span>Replace $1000s in SaaS costs</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>Code templates & tutorials</span>
+              <span>Build your own tools with AI</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>Live office hours</span>
+              <span>Weekly live office hours</span>
             </div>
           </div>
         </div>
@@ -170,32 +173,54 @@ export function CommunityBadge() {
           </div>
         </div>
 
-        {/* Join CTA - Show if not logged in OR logged in but no active subscription (unless admin) */}
-        {(!user || (user && !hasActiveSubscription && !isAdmin)) && (
+        {/* CTA Buttons based on user state */}
+        {!user ? (
+          // Not logged in - only show free access
           <Button 
-            onClick={() => {
-              if (!user) {
-                setShowSignupModal(true)
-              } else {
-                // User is logged in but no subscription - show payment modal
-                setShowPaymentModal(true)
-              }
-            }}
+            onClick={() => setShowFreeSignupModal(true)}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+            size="default"
+          >
+            Get Free Template
+          </Button>
+        ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
+          // Free tier user - show upgrade
+          <Button 
+            onClick={() => setShowPaymentModal(true)}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+            size="default"
+          >
+            Upgrade to Premium
+          </Button>
+        ) : user && !hasActiveSubscription && !isAdmin ? (
+          // Logged in but no tier/subscription
+          <Button 
+            onClick={() => setShowPaymentModal(true)}
             className="w-full"
             size="default"
           >
             Join for $97/month
           </Button>
-        )}
+        ) : null}
       </CardContent>
 
       {/* Signup Modal */}
       <SignupModal 
         open={showSignupModal} 
         onOpenChange={setShowSignupModal}
-        communityName="Build What You Need"
+        communityName="Build What You Need by Chris"
         onLoginClick={() => {
           setShowSignupModal(false)
+          setShowLoginModal(true)
+        }}
+      />
+
+      {/* Free Signup Modal */}
+      <FreeSignupModal 
+        open={showFreeSignupModal}
+        onOpenChange={setShowFreeSignupModal}
+        onLoginClick={() => {
+          setShowFreeSignupModal(false)
           setShowLoginModal(true)
         }}
       />
@@ -206,7 +231,7 @@ export function CommunityBadge() {
         onOpenChange={setShowLoginModal}
         onSignupClick={() => {
           setShowLoginModal(false)
-          setShowSignupModal(true)
+          setShowFreeSignupModal(true)
         }}
       />
 

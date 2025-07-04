@@ -11,6 +11,7 @@ export async function GET() {
       *,
       lessons(count)
     `)
+    .order('is_free', { ascending: false })
     .order('order_index', { ascending: true })
 
   if (error) {

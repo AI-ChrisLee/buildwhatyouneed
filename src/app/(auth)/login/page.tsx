@@ -30,8 +30,32 @@ export default function LoginPage() {
       if (error) throw error
 
       if (data.user) {
-        // Redirect to home page after successful login
-        router.push('/')
+        // Check user's subscription and membership tier
+        const { data: subscriptions } = await supabase
+          .from('stripe_subscriptions')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .eq('status', 'active')
+          .limit(1)
+        
+        // Check if user is admin and membership tier
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_admin, membership_tier')
+          .eq('id', data.user.id)
+          .single()
+        
+        // Force a hard navigation to ensure middleware runs
+        if ((subscriptions && subscriptions.length > 0) || userData?.is_admin) {
+          // Paid member or admin - go to threads
+          window.location.href = '/threads'
+        } else if (userData?.membership_tier === 'free') {
+          // Free tier user - go to classroom
+          window.location.href = '/classroom'
+        } else {
+          // No subscription, no tier - go to home page
+          window.location.href = '/'
+        }
       }
     } catch (error: any) {
       setError(error.message || "Invalid email or password")

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Search, User, LogOut, Key } from "lucide-react"
@@ -17,19 +18,21 @@ import { createClient } from "@/lib/supabase/client"
 import { SignupModal } from "@/components/signup-modal"
 import { LoginModal } from "@/components/login-modal"
 import { AvatarGradient } from "@/components/ui/avatar-gradient"
+import PaymentModal from "@/components/payment-modal"
 
 export function ProtectedNavBar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState<{ email: string; name: string; isAdmin?: boolean; hasSubscription?: boolean } | null>(null)
+  const [user, setUser] = useState<{ email: string; name: string; isAdmin?: boolean; hasSubscription?: boolean; membershipTier?: string } | null>(null)
   const [showSignupModal, setShowSignupModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const supabase = createClient()
   
   const navItems = [
-    { label: "Threads", href: "/threads", protected: true },
-    { label: "Classroom", href: "/classroom", protected: true },
-    { label: "Calendar", href: "/calendar", protected: true },
+    { label: "Threads", href: "/threads", protected: true, requiresPaid: true },
+    { label: "Classroom", href: "/classroom", protected: true, requiresPaid: false },
+    { label: "Calendar", href: "/calendar", protected: true, requiresPaid: true },
   ]
   
   useEffect(() => {
@@ -39,7 +42,7 @@ export function ProtectedNavBar() {
         // Get user details from the users table
         const { data: userData } = await supabase
           .from('users')
-          .select('full_name, is_admin')
+          .select('full_name, is_admin, membership_tier')
           .eq('id', authUser.id)
           .single()
         
@@ -48,14 +51,15 @@ export function ProtectedNavBar() {
           .from('stripe_subscriptions')
           .select('*')
           .eq('user_id', authUser.id)
-          .eq('status', 'active')
+          .in('status', ['active', 'trialing', 'incomplete'])
           .limit(1)
         
         setUser({
           email: authUser.email || '',
           name: userData?.full_name || authUser.email?.split('@')[0] || 'User',
           isAdmin: userData?.is_admin || false,
-          hasSubscription: (subscriptions && subscriptions.length > 0) || userData?.is_admin || false
+          hasSubscription: (subscriptions && subscriptions.length > 0) || userData?.is_admin || userData?.membership_tier === 'paid' || false,
+          membershipTier: userData?.membership_tier || null
         })
       }
     }
@@ -79,15 +83,17 @@ export function ProtectedNavBar() {
     router.push("/")
   }
 
-  const handleNavClick = (e: React.MouseEvent, item: { href: string; protected: boolean }) => {
-    if (item.protected && (!user || !user.hasSubscription)) {
+  const handleNavClick = (e: React.MouseEvent, item: { href: string; protected: boolean; requiresPaid?: boolean }) => {
+    if (item.protected && !user) {
       e.preventDefault()
-      if (!user) {
-        setShowSignupModal(true)
-      } else {
-        // User is logged in but no subscription
-        setShowSignupModal(true)
-      }
+      setShowSignupModal(true)
+    } else if (item.requiresPaid && user && !user.hasSubscription) {
+      e.preventDefault()
+      // User is logged in but no subscription - show payment modal
+      setShowPaymentModal(true)
+    } else if (!item.requiresPaid && user && user.membershipTier === 'free') {
+      // Free users can access classroom - let them through
+      return
     }
   }
 
@@ -98,10 +104,16 @@ export function ProtectedNavBar() {
           <div className="flex h-14 items-center gap-2 md:gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">B</span>
-              </div>
-              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">Build What You Need</span>
+              <Image
+                src="/images/logo.png"
+                alt="AI Chris Lee Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+                priority
+                quality={90}
+              />
+              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">AI Chris Lee</span>
             </Link>
 
             {/* Navigation - Desktop */}
@@ -141,18 +153,6 @@ export function ProtectedNavBar() {
                 </Link>
               ))}
             </nav>
-
-            {/* Search - Hidden for now, can be enabled later */}
-            {/* <div className="flex-1 max-w-md mx-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full pl-9 pr-4 py-1.5 text-sm bg-muted rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            </div> */}
 
             {/* Spacer */}
             <div className="flex-1" />
@@ -221,6 +221,13 @@ export function ProtectedNavBar() {
           setShowLoginModal(false)
           setShowSignupModal(true)
         }}
+      />
+
+      {/* Payment Modal */}
+      <PaymentModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        user={user}
       />
     </>
   )

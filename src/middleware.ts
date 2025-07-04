@@ -33,25 +33,27 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/', '/terms', '/privacy']
   const isPublicRoute = publicRoutes.includes(pathname)
   
-  // If user is accessing root and is authenticated with subscription, redirect to /threads
+  // If user is accessing root and is authenticated with subscription, redirect to appropriate page
   if (pathname === '/' && user) {
     // Check if user has active subscription
     const { data: subscription } = await supabase
       .from('stripe_subscriptions')
       .select('status')
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .in('status', ['active', 'trialing', 'incomplete'])
       .maybeSingle()
     
-    // Check if user is admin
+    // Check if user is admin or tier
     const { data: userData } = await supabase
       .from('users')
-      .select('is_admin')
+      .select('is_admin, membership_tier')
       .eq('id', user.id)
       .single()
     
-    if (subscription || userData?.is_admin) {
+    if (subscription || userData?.is_admin || userData?.membership_tier === 'paid') {
       return NextResponse.redirect(new URL('/threads', request.url))
+    } else if (userData?.membership_tier === 'free') {
+      return NextResponse.redirect(new URL('/classroom', request.url))
     }
   }
   
@@ -86,18 +88,26 @@ export async function middleware(request: NextRequest) {
         .from('stripe_subscriptions')
         .select('status')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing', 'incomplete'])
         .maybeSingle()
 
-      // Check if user is admin
+      // Check if user is admin or has tier
       const { data: userData } = await supabase
         .from('users')
-        .select('is_admin')
+        .select('is_admin, membership_tier')
         .eq('id', user.id)
         .single()
       
-      // No active subscription and not admin - redirect to home
-      if (!subscription && !userData?.is_admin) {
+      // Allow access if:
+      // 1. User has active/trialing/incomplete subscription
+      // 2. User is admin
+      // 3. User has paid membership tier
+      // 4. User has free tier AND is accessing classroom
+      const hasFreeAccess = userData?.membership_tier === 'free' && pathname.startsWith('/classroom')
+      const hasPaidAccess = userData?.membership_tier === 'paid'
+      
+      // No active subscription, not admin, no paid tier, and no free tier access - redirect to home
+      if (!subscription && !userData?.is_admin && !hasPaidAccess && !hasFreeAccess) {
         return NextResponse.redirect(new URL('/', request.url))
       }
     }

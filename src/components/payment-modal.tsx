@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { loadStripe } from "@stripe/stripe-js"
@@ -58,8 +58,8 @@ function PaymentForm({ user, onSuccess }: { user: any; onSuccess: () => void }) 
         return
       }
 
-      // Create subscription
-      const response = await fetch("/api/stripe/create-subscription", {
+      // Create payment using the simpler endpoint
+      const response = await fetch("/api/stripe/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -69,23 +69,17 @@ function PaymentForm({ user, onSuccess }: { user: any; onSuccess: () => void }) 
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to create subscription")
+        throw new Error(errorData.error || "Failed to process payment")
       }
 
-      const { clientSecret } = await response.json()
+      const { success, status } = await response.json()
 
-      // Confirm payment if needed
-      if (clientSecret) {
-        const { error: confirmError } = await stripe.confirmCardPayment(clientSecret)
-        if (confirmError) {
-          setError(confirmError.message || "Payment failed")
-          return
-        }
+      if (!success) {
+        throw new Error(`Payment failed with status: ${status}`)
       }
 
-      // Payment successful
-      onSuccess()
-      router.push("/?success=true")
+      // Payment successful - redirect immediately with hard navigation
+      window.location.href = "/threads?success=true"
     } catch (error: any) {
       setError(error.message || "Payment failed")
     } finally {
@@ -159,17 +153,17 @@ function PaymentForm({ user, onSuccess }: { user: any; onSuccess: () => void }) 
 export default function PaymentModal({ open, onOpenChange, user }: PaymentModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" aria-describedby="payment-modal-description">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center">
               <span className="text-white text-2xl font-bold">B</span>
             </div>
           </div>
           <DialogTitle className="text-xl font-semibold">Build What You Need</DialogTitle>
-          <p id="payment-modal-description" className="sr-only">
-            Payment form for Build What You Need membership
-          </p>
+          <DialogDescription className="text-sm text-muted-foreground mt-2">
+            Complete your payment to unlock all premium features
+          </DialogDescription>
         </DialogHeader>
 
         <Elements stripe={getStripe()}>

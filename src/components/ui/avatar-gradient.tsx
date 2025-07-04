@@ -15,7 +15,7 @@ export function AvatarGradient({ seed, className, showPattern = false }: AvatarG
   
   return (
     <div className={cn(
-      "relative overflow-hidden bg-gradient-to-br",
+      "relative overflow-hidden bg-gradient-to-br rounded-full",
       gradient,
       className
     )}>

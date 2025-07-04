@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Lock } from "lucide-react"
@@ -45,6 +45,9 @@ export function AccessDeniedModal({ open, onOpenChange, feature }: AccessDeniedM
             </div>
           </div>
           <DialogTitle className="text-xl font-semibold">Members Only</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Upgrade to premium to access exclusive features
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 text-center">

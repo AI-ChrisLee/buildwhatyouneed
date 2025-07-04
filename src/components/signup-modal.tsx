@@ -16,7 +16,7 @@ interface SignupModalProps {
   onLoginClick?: () => void
 }
 
-export function SignupModal({ open, onOpenChange, communityName = "Build What You Need", onLoginClick }: SignupModalProps) {
+export function SignupModal({ open, onOpenChange, communityName = "Build What You Need by Chris", onLoginClick }: SignupModalProps) {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
@@ -61,9 +61,9 @@ export function SignupModal({ open, onOpenChange, communityName = "Build What Yo
           console.error('Lead creation error:', leadError)
         }
 
-        // Close modal and redirect to home page
+        // Close modal and redirect to payment page for regular signup
         onOpenChange(false)
-        router.push('/')
+        router.push('/payment')
         router.refresh()
       }
     } catch (error: any) {
@@ -90,62 +90,50 @@ export function SignupModal({ open, onOpenChange, communityName = "Build What Yo
             </div>
 
             <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <Label htmlFor="firstName" className="text-sm text-gray-600">First name</Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="mt-1"
-                  placeholder="First name"
-                />
-              </div>
+              <Input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="First name"
+                className="h-12"
+              />
 
-              <div>
-                <Label htmlFor="lastName" className="text-sm text-gray-600">Last name</Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="mt-1"
-                  placeholder="Last name"
-                />
-              </div>
+              <Input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Last name"
+                className="h-12"
+              />
 
-              <div>
-                <Label htmlFor="email" className="text-sm text-gray-600">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading}
-                  className="mt-1"
-                  placeholder="Email"
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Email"
+                className="h-12"
+              />
 
-              <div>
-                <Label htmlFor="password" className="text-sm text-gray-600">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  disabled={loading}
-                  className="mt-1"
-                  placeholder="Password"
-                />
-              </div>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                disabled={loading}
+                placeholder="Password"
+                className="h-12"
+              />
 
               {error && (
                 <div className="text-sm text-red-600 text-center">
@@ -169,15 +157,17 @@ export function SignupModal({ open, onOpenChange, communityName = "Build What Yo
                 )}
               </Button>
 
-              <p className="text-xs text-gray-500 text-center">
-                By signing up, you accept our{" "}
-                <a href="/terms" className="underline">terms</a>{" "}
-                and{" "}
-                <a href="/privacy" className="underline">privacy policy</a>
-              </p>
+              <div className="mt-6">
+                <p className="text-xs text-gray-500 text-center">
+                  By signing up, you accept our{" "}
+                  <a href="/terms" className="underline">terms</a>{" "}
+                  and{" "}
+                  <a href="/privacy" className="underline">privacy policy</a>
+                </p>
+              </div>
             </form>
 
-            <div className="text-center pt-4 border-t">
+            <div className="text-center pt-6 mt-8 border-t">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
                 <button

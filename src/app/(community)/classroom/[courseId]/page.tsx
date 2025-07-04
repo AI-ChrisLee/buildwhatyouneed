@@ -5,8 +5,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Course, Lesson } from "@/lib/supabase"
-import { Clock, Plus, Edit, Trash2 } from "lucide-react"
+import { Clock, Plus, Edit, Trash2, Lock } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import PaymentModal from "@/components/payment-modal"
+import { useRouter } from "next/navigation"
 
 export default function CourseDetailPage({
   params,
@@ -17,7 +19,11 @@ export default function CourseDetailPage({
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [accessDenied, setAccessDenied] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchCourseDetailsAndCheckAdmin() {
@@ -32,10 +38,25 @@ export default function CourseDetailPage({
             .single()
           
           setIsAdmin(userData?.is_admin || false)
+          setCurrentUser(user)
         }
 
         // Fetch course details
         const response = await fetch(`/api/courses/${params.courseId}/lessons`)
+        if (response.status === 403) {
+          // Access denied - show upgrade modal
+          const courseResponse = await fetch(`/api/courses/${params.courseId}`)
+          if (courseResponse.status === 403) {
+            setAccessDenied(true)
+            const { data: coursesData } = await fetch('/api/courses').then(r => r.json())
+            const blockedCourse = coursesData?.find((c: any) => c.id === params.courseId)
+            if (blockedCourse) {
+              setCourse(blockedCourse)
+              setShowPaymentModal(true)
+            }
+            return
+          }
+        }
         if (!response.ok) {
           throw new Error('Course not found')
         }
@@ -65,6 +86,43 @@ export default function CourseDetailPage({
       <div className="flex items-center justify-center min-h-[400px]">
         <p className="text-muted-foreground">Course not found</p>
       </div>
+    )
+  }
+
+  if (accessDenied) {
+    return (
+      <>
+        <div className="min-h-[400px] flex flex-col items-center justify-center text-center px-4">
+          <Lock className="h-16 w-16 text-gray-300 mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Premium Content</h2>
+          <p className="text-gray-600 mb-6 max-w-md">
+            This course is only available to premium members. Upgrade your account to access all courses and features.
+          </p>
+          <Button 
+            onClick={() => setShowPaymentModal(true)}
+            className="bg-gray-900 hover:bg-gray-800 text-white"
+            size="lg"
+          >
+            Upgrade to Premium
+          </Button>
+          <Link 
+            href="/classroom" 
+            className="text-sm text-gray-600 hover:text-gray-900 mt-4"
+          >
+            ← Back to classroom
+          </Link>
+        </div>
+        <PaymentModal
+          open={showPaymentModal}
+          onOpenChange={(open) => {
+            setShowPaymentModal(open)
+            if (!open) {
+              router.push('/classroom')
+            }
+          }}
+          user={currentUser}
+        />
+      </>
     )
   }
 

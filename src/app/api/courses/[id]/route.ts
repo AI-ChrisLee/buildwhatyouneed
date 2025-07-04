@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { checkCourseAccess } from '@/lib/course-access'
 
 // GET /api/courses/[id] - Get single course
 export async function GET(
@@ -7,6 +8,24 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const supabase = createClient()
+  
+  // Get authenticated user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+  
+  // Check course access
+  const access = await checkCourseAccess(user.id, params.id)
+  if (!access.hasAccess) {
+    return NextResponse.json(
+      { error: access.requiresUpgrade ? 'Upgrade required' : 'Access denied' },
+      { status: 403 }
+    )
+  }
   
   const { data: course, error } = await supabase
     .from('courses')

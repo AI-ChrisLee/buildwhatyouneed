@@ -7,9 +7,11 @@ import { NewThreadDialog } from "@/components/new-thread-dialog"
 import { ThreadDetailDialog } from "@/components/thread-detail-dialog"
 import { ChevronLeft, ChevronRight, Plus, MessageSquare } from "lucide-react"
 import { getThreads, type ThreadWithAuthor } from "@/lib/supabase/client-queries"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useMembership } from "@/hooks/use-membership"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AvatarGradient } from "@/components/ui/avatar-gradient"
+import { createClient } from "@/lib/supabase/client"
 
 const categories = [
   { id: "all", label: "All", description: "All threads" },
@@ -29,8 +31,54 @@ export default function ThreadsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [threads, setThreads] = useState<ThreadWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [user, setUser] = useState<{ email: string; name: string } | null>(null)
   const router = useRouter()
-  const { MembershipGate, AccessDeniedModal } = useMembership()
+  const searchParams = useSearchParams()
+  const { MembershipGate, AccessDeniedModal, membershipTier, hasAccess, checkMembership } = useMembership()
+  const supabase = createClient()
+
+  // Fetch user data
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', authUser.id)
+          .single()
+        
+        setUser({
+          email: authUser.email || '',
+          name: userData?.full_name || authUser.email?.split('@')[0] || 'User'
+        })
+      }
+    }
+    
+    getUser()
+  }, [supabase])
+
+  // Check for success parameter on mount
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      setShowSuccessMessage(true)
+      // Clear the success parameter from URL
+      router.replace('/threads')
+      // Hide message after 5 seconds
+      setTimeout(() => setShowSuccessMessage(false), 5000)
+      // Force re-check membership after payment
+      checkMembership()
+    }
+  }, [searchParams, router, checkMembership])
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('Threads page membership status:', {
+      membershipTier,
+      hasAccess,
+    })
+  }, [membershipTier, hasAccess])
 
   // Fetch threads on mount and category change
   useEffect(() => {
@@ -70,13 +118,27 @@ export default function ThreadsPage() {
   }
 
   return (
-    <MembershipGate feature="Community Threads">
-      <div className="min-h-screen">
-        {/* Header */}
+    <div className="min-h-screen">
+        {/* Header with input box */}
         <div className="border-b">
-          <div className="flex items-center justify-between gap-4 px-4 md:px-6 py-3">
+          <div className="px-4 md:px-6 py-4 space-y-4">
+            {/* Conversational input box */}
+            <div 
+              onClick={() => setIsNewThreadOpen(true)}
+              className="flex items-center gap-3 p-4 bg-background rounded-lg cursor-pointer border shadow-sm hover:shadow-md transition-all"
+            >
+              {user ? (
+                <AvatarGradient seed={user.email} className="h-10 w-10 shrink-0" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                </div>
+              )}
+              <span className="text-muted-foreground">Write something</span>
+            </div>
+
             {/* Category tabs */}
-            <div className="overflow-x-auto flex-1">
+            <div className="overflow-x-auto">
               <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
                 <TabsList className="h-10 p-1 bg-transparent border-0 w-full sm:w-auto">
                   {categories.map((category) => (
@@ -91,15 +153,20 @@ export default function ThreadsPage() {
                 </TabsList>
               </Tabs>
             </div>
-            <Button onClick={() => setIsNewThreadOpen(true)} size="sm" className="shrink-0">
-              <Plus className="h-4 w-4 mr-2" />
-              New Thread
-            </Button>
           </div>
         </div>
 
         {/* Main content */}
         <div className="px-6 py-6">
+          {/* Success message */}
+          {showSuccessMessage && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                Welcome to Build What You Need! Your payment was successful. You now have full access to all community features.
+              </p>
+            </div>
+          )}
+
           {/* Threads list */}
           <div className="space-y-0 divide-y">
             {loading ? (
@@ -209,6 +276,5 @@ export default function ThreadsPage() {
       
         <AccessDeniedModal />
       </div>
-    </MembershipGate>
   )
 }

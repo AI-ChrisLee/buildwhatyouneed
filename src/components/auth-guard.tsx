@@ -6,10 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 
 export function AuthGuard({ 
   children,
-  requireSubscription = false 
+  requireSubscription = false,
+  allowFreeTier = false 
 }: { 
   children: React.ReactNode
   requireSubscription?: boolean
+  allowFreeTier?: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -31,6 +33,7 @@ export function AuthGuard({
       }
 
       if (requireSubscription) {
+        // Check if user has active subscription
         const { data: subscription } = await supabase
           .from('stripe_subscriptions')
           .select('status')
@@ -38,7 +41,21 @@ export function AuthGuard({
           .eq('status', 'active')
           .maybeSingle()
 
-        if (!subscription) {
+        // If allowing free tier, check user's membership tier
+        if (!subscription && allowFreeTier) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('membership_tier')
+            .eq('id', user.id)
+            .single()
+          
+          if (userData?.membership_tier !== 'free') {
+            router.push('/')
+            return
+          }
+          // Free tier users are allowed to continue
+        } else if (!subscription) {
+          // No subscription and not allowing free tier
           router.push('/')
           return
         }

@@ -45,24 +45,26 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
           .eq('status', 'active')
           .limit(1)
         
-        // Check if user is admin
+        // Check if user is admin and membership tier
         const { data: userData } = await supabase
           .from('users')
-          .select('is_admin')
+          .select('is_admin, membership_tier')
           .eq('id', data.user.id)
           .single()
         
         onOpenChange(false)
         
-        // Redirect based on subscription status
+        // Force a hard navigation to ensure middleware runs
         if ((subscriptions && subscriptions.length > 0) || userData?.is_admin) {
           // Paid member or admin - go to threads
-          router.push('/threads')
+          window.location.href = '/threads'
+        } else if (userData?.membership_tier === 'free') {
+          // Free tier user - go to classroom
+          window.location.href = '/classroom'
         } else {
-          // Free user - go to home page
-          router.push('/')
+          // No subscription, no tier - go to home page
+          window.location.href = '/'
         }
-        router.refresh()
       }
     } catch (error: any) {
       setError(error.message || "Invalid email or password")
