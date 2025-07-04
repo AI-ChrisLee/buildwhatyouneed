@@ -1,37 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-// GET /api/courses - List all courses
-export async function GET() {
-  const supabase = createClient()
-  
-  const { data: courses, error } = await supabase
-    .from('courses')
-    .select(`
-      *,
-      lessons(count)
-    `)
-    .order('order_index', { ascending: true })
-
-  if (error) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 400 }
-    )
-  }
-
-  // Transform data to include lesson count
-  const coursesWithCount = courses?.map(course => ({
-    ...course,
-    lesson_count: course.lessons[0]?.count || 0
-  })) || []
-
-  return NextResponse.json({
-    data: coursesWithCount
-  })
-}
-
-// POST /api/courses - Create new course
+// POST /api/lessons - Create new lesson
 export async function POST(request: Request) {
   const supabase = createClient()
   
@@ -57,16 +27,19 @@ export async function POST(request: Request) {
     )
   }
 
-  // Create course
+  // Create lesson
   const body = await request.json()
-  const { title, description, order_index } = body
+  const { title, description, wistia_video_id, order_index, duration_minutes, course_id } = body
 
-  const { data: course, error } = await supabase
-    .from('courses')
+  const { data: lesson, error } = await supabase
+    .from('lessons')
     .insert({
       title,
       description,
+      wistia_video_id,
       order_index: order_index || 1,
+      duration_minutes,
+      course_id,
     })
     .select()
     .single()
@@ -78,5 +51,5 @@ export async function POST(request: Request) {
     )
   }
 
-  return NextResponse.json({ data: course })
+  return NextResponse.json({ data: lesson })
 }

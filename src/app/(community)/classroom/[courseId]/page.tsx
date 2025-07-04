@@ -1,63 +1,71 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { notFound } from "next/navigation"
-
-const courses = {
-  "saas-101": {
-    title: "SaaS Destruction 101",
-    description: "Learn the fundamentals of replacing expensive SaaS with simple code.",
-    lessons: [
-      { id: "1", title: "Introduction: The SaaS Lie", duration: "12:34" },
-      { id: "2", title: "Setting Up Your Dev Environment", duration: "18:45" },
-      { id: "3", title: "Replacing Intercom with 50 Lines", duration: "25:12" },
-      { id: "4", title: "Kill Your Analytics Platform", duration: "19:38" },
-      { id: "5", title: "Email Marketing = For Loop", duration: "22:10" },
-      { id: "6", title: "CRM in a Spreadsheet", duration: "15:55" },
-      { id: "7", title: "Project Management = Markdown", duration: "18:20" },
-      { id: "8", title: "Landing Pages Without Builders", duration: "28:30" },
-      { id: "9", title: "Forms Without TypeForm", duration: "16:42" },
-      { id: "10", title: "Scheduling Without Calendly", duration: "20:15" },
-      { id: "11", title: "Payments Without Complexity", duration: "24:18" },
-      { id: "12", title: "Putting It All Together", duration: "30:00" },
-    ],
-  },
-  "advanced": {
-    title: "Advanced Patterns",
-    description: "Complex replacements for enterprise software. Real production examples.",
-    lessons: [
-      { id: "1", title: "Enterprise Auth Systems", duration: "32:15" },
-      { id: "2", title: "Real-time Collaboration", duration: "28:40" },
-      { id: "3", title: "Data Pipelines", duration: "35:20" },
-      { id: "4", title: "Search at Scale", duration: "29:55" },
-      { id: "5", title: "Multi-tenant Architecture", duration: "38:10" },
-      { id: "6", title: "API Gateway Patterns", duration: "26:30" },
-      { id: "7", title: "Monitoring Without DataDog", duration: "22:45" },
-      { id: "8", title: "CI/CD Without Services", duration: "31:25" },
-    ],
-  },
-  "quick-wins": {
-    title: "Quick Wins",
-    description: "5 tools you can replace today. Under 50 lines of code each.",
-    lessons: [
-      { id: "1", title: "URL Shortener", duration: "8:30" },
-      { id: "2", title: "Status Page", duration: "10:15" },
-      { id: "3", title: "Feedback Widget", duration: "7:45" },
-      { id: "4", title: "Newsletter Signup", duration: "9:20" },
-      { id: "5", title: "FAQ Bot", duration: "11:10" },
-    ],
-  },
-}
+import { useEffect, useState } from "react"
+import { Course, Lesson } from "@/lib/supabase"
+import { Clock, Plus, Edit, Trash2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 
 export default function CourseDetailPage({
   params,
 }: {
   params: { courseId: string }
 }) {
-  const course = courses[params.courseId as keyof typeof courses]
-  
+  const [course, setCourse] = useState<Course | null>(null)
+  const [lessons, setLessons] = useState<Lesson[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function fetchCourseDetailsAndCheckAdmin() {
+      try {
+        // Check if user is admin
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', user.id)
+            .single()
+          
+          setIsAdmin(userData?.is_admin || false)
+        }
+
+        // Fetch course details
+        const response = await fetch(`/api/courses/${params.courseId}/lessons`)
+        if (!response.ok) {
+          throw new Error('Course not found')
+        }
+        const { data } = await response.json()
+        setCourse(data.course)
+        setLessons(data.lessons || [])
+      } catch (error) {
+        console.error('Failed to fetch course details:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCourseDetailsAndCheckAdmin()
+  }, [params.courseId])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading course...</p>
+      </div>
+    )
+  }
+
   if (!course) {
-    notFound()
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Course not found</p>
+      </div>
+    )
   }
 
   return (
@@ -67,36 +75,87 @@ export default function CourseDetailPage({
       </Link>
 
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
-        <p className="text-muted-foreground mt-2">{course.description}</p>
-        <p className="text-sm mt-2">{course.lessons.length} lessons</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
+            <p className="text-muted-foreground mt-2">{course.description}</p>
+            <p className="text-sm mt-2">{lessons.length} lessons</p>
+          </div>
+          {isAdmin && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/admin/courses/${params.courseId}`}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Course
+                </Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href={`/admin/courses/${params.courseId}/lessons/new`}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Lesson
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">
-        {course.lessons.map((lesson, index) => (
-          <Link
-            key={lesson.id}
-            href={`/classroom/${params.courseId}/${lesson.id}`}
-          >
-            <Card className="hover:shadow-md transition-all cursor-pointer">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-2xl text-muted-foreground font-mono">
-                    {String(index + 1).padStart(2, '0')}
+        {lessons.map((lesson, index) => (
+          <div key={lesson.id} className="relative group">
+            <Link
+              href={`/classroom/${params.courseId}/${lesson.id}`}
+            >
+              <Card className="hover:shadow-md transition-all cursor-pointer">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-2xl text-muted-foreground font-mono">
+                      {String(index + 1).padStart(2, '0')}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{lesson.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{lesson.duration_minutes ? `${lesson.duration_minutes} minutes` : 'Video lesson'}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">{lesson.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {lesson.duration}
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">
-                  Watch
+                  <Button variant="outline" size="sm">
+                    Watch
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+            
+            {/* Admin controls overlay */}
+            {isAdmin && (
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  asChild
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Link href={`/admin/courses/${params.courseId}/lessons/${lesson.id}`}>
+                    <Edit className="h-4 w-4" />
+                  </Link>
                 </Button>
-              </CardContent>
-            </Card>
-          </Link>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (confirm('Are you sure you want to delete this lesson?')) {
+                      // TODO: Implement lesson deletion
+                      console.log('Delete lesson:', lesson.id)
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>

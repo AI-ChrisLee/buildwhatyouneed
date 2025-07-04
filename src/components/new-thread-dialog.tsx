@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,10 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Paperclip, Link, Image, Smile, X, User } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { createThread, type ThreadWithAuthor } from "@/lib/supabase/client-queries"
+import { createClient } from "@/lib/supabase/client"
 
 interface NewThreadDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onThreadCreated?: (thread: ThreadWithAuthor) => void
 }
 
 const categories = [
@@ -27,13 +30,36 @@ interface Attachment {
   name?: string
 }
 
-export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
+export function NewThreadDialog({ open, onOpenChange, onThreadCreated }: NewThreadDialogProps) {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [category, setCategory] = useState("general")
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [linkInput, setLinkInput] = useState("")
   const [showLinkInput, setShowLinkInput] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [user, setUser] = useState<{ email: string; name: string } | null>(null)
+  const supabase = createClient()
+  
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', authUser.id)
+          .single()
+        
+        setUser({
+          email: authUser.email || '',
+          name: userData?.full_name || authUser.email?.split('@')[0] || 'User'
+        })
+      }
+    }
+    
+    getUser()
+  }, [supabase])
 
   const handleAddLink = () => {
     if (linkInput.trim()) {
@@ -53,29 +79,51 @@ export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
     setAttachments(attachments.filter((_, i) => i !== index))
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // In real app, upload to server and get URL
-      // For now, use local URL
-      const url = URL.createObjectURL(file)
-      setAttachments([...attachments, {
-        type: 'image',
-        url,
-        name: file.name
-      }])
-    }
-  }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log({ title, content, category, attachments })
-    onOpenChange(false)
-    // Reset form
-    setTitle("")
-    setContent("")
-    setCategory("general")
-    setAttachments([])
+    if (submitting) return
+    
+    setSubmitting(true)
+    try {
+      // For MVP: Append attachments as markdown to content
+      let fullContent = content.trim()
+      
+      if (attachments.length > 0) {
+        fullContent += '\n\n'
+        attachments.forEach(attachment => {
+          if (attachment.type === 'image') {
+            fullContent += `![Image](${attachment.url})\n`
+          } else {
+            fullContent += `[Video Link](${attachment.url})\n`
+          }
+        })
+      }
+      
+      const newThread = await createThread({
+        title: title.trim(),
+        content: fullContent,
+        category
+      })
+      
+      // Reset form
+      setTitle("")
+      setContent("")
+      setCategory("general")
+      setAttachments([])
+      
+      // Call callback if provided
+      if (onThreadCreated) {
+        onThreadCreated(newThread)
+      }
+      
+      onOpenChange(false)
+    } catch (error) {
+      console.error('Error creating thread:', error)
+      alert('Failed to create thread. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const getVideoThumbnail = (url: string) => {
@@ -95,11 +143,11 @@ export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
         <div className="flex items-center gap-3 p-4 border-b">
           <Avatar className="h-10 w-10">
             <AvatarFallback>
-              <User className="h-5 w-5" />
+              {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-sm font-medium">John Doe posting in Build What You Need</p>
+            <p className="text-sm font-medium">{user?.name || 'Loading...'} posting in Build What You Need</p>
           </div>
         </div>
         
@@ -145,26 +193,30 @@ export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
                       </div>
                     ) : (
                       <div className="relative">
-                        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg max-w-full">
                           {getVideoThumbnail(attachment.url) && (
                             <img 
                               src={getVideoThumbnail(attachment.url)!} 
                               alt="Video thumbnail"
-                              className="w-24 h-16 object-cover rounded"
+                              className="w-24 h-16 object-cover rounded flex-shrink-0"
                             />
                           )}
-                          <div className="flex-1">
-                            <p className="text-sm font-medium truncate">{attachment.url}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate max-w-md">
+                              {attachment.url.length > 50 
+                                ? attachment.url.substring(0, 50) + '...' 
+                                : attachment.url}
+                            </p>
                             <p className="text-xs text-muted-foreground">Video link</p>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAttachment(index)}
+                            className="p-1 hover:bg-background rounded-full flex-shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAttachment(index)}
-                          className="absolute top-2 right-2 p-1 bg-background rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
                       </div>
                     )}
                   </div>
@@ -174,23 +226,28 @@ export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
 
             {/* Link Input */}
             {showLinkInput && (
-              <div className="flex items-center gap-2">
-                <Input
-                  value={linkInput}
-                  onChange={(e) => setLinkInput(e.target.value)}
-                  placeholder="Paste image or video URL..."
-                  className="flex-1"
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLink())}
-                />
-                <Button type="button" size="sm" onClick={handleAddLink}>Add</Button>
-                <Button 
-                  type="button" 
-                  size="sm" 
-                  variant="ghost"
-                  onClick={() => setShowLinkInput(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Paste a URL to an image (jpg, png, gif) or video (YouTube, Vimeo, Loom)
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={linkInput}
+                    onChange={(e) => setLinkInput(e.target.value)}
+                    placeholder="https://example.com/image.jpg or https://youtube.com/watch?v=..."
+                    className="flex-1"
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLink())}
+                  />
+                  <Button type="button" size="sm" onClick={handleAddLink}>Add</Button>
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => setShowLinkInput(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -198,44 +255,14 @@ export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
           {/* Footer */}
           <div className="flex items-center justify-between p-4 border-t bg-muted/30">
             <div className="flex items-center gap-1">
-              <input
-                type="file"
-                id="image-upload"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageUpload}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => document.getElementById('image-upload')?.click()}
-              >
-                <Paperclip className="h-5 w-5" />
-              </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowLinkInput(true)}
+                title="Add image or video URL"
               >
                 <Link className="h-5 w-5" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                disabled
-              >
-                <Image className="h-5 w-5" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                disabled
-              >
-                <Smile className="h-5 w-5" />
               </Button>
               
               <Select value={category} onValueChange={setCategory}>
@@ -262,9 +289,9 @@ export function NewThreadDialog({ open, onOpenChange }: NewThreadDialogProps) {
               </Button>
               <Button 
                 type="submit"
-                disabled={!title.trim() || !content.trim()}
+                disabled={!title.trim() || !content.trim() || submitting}
               >
-                POST
+                {submitting ? 'POSTING...' : 'POST'}
               </Button>
             </div>
           </div>

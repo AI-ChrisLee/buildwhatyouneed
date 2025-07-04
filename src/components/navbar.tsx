@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Search, Bell, User, LogOut } from "lucide-react"
+import { Search, User, LogOut, Key } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 export function NavBar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [user, setUser] = useState<{ email: string; name: string; isAdmin?: boolean } | null>(null)
+  const supabase = createClient()
   
   const navItems = [
     { label: "Threads", href: "/threads" },
@@ -24,15 +28,31 @@ export function NavBar() {
     { label: "About", href: "/about" },
   ]
   
-  // Mock user data - in a real app, this would come from auth context
-  const user = {
-    email: "john@example.com",
-    name: "John Builder",
-  }
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        // Get user details from the users table
+        const { data: userData } = await supabase
+          .from('users')
+          .select('full_name, is_admin')
+          .eq('id', authUser.id)
+          .single()
+        
+        setUser({
+          email: authUser.email || '',
+          name: userData?.full_name || authUser.email?.split('@')[0] || 'User',
+          isAdmin: userData?.is_admin || false
+        })
+      }
+    }
+    
+    getUser()
+  }, [supabase])
   
-  const handleLogout = () => {
-    // In a real app, this would handle logout logic
-    router.push("/join")
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push("/")
   }
 
   return (
@@ -56,34 +76,34 @@ export function NavBar() {
 
           {/* Right side icons */}
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            
             {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-gray-600" />
+                    {user?.name ? (
+                      <span className="text-sm font-medium text-gray-700">
+                        {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                      </span>
+                    ) : (
+                      <User className="w-5 h-5 text-gray-600" />
+                    )}
                   </div>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    <p className="text-sm font-medium leading-none">{user?.name || 'Loading...'}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
+                      {user?.email || ''}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
+                <DropdownMenuItem onClick={() => router.push('/settings/password')}>
+                  <Key className="mr-2 h-4 w-4" />
+                  <span>Change Password</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>

@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { mockThreads } from "@/lib/mock-data"
 import { ThreadCardV2 } from "@/components/thread-card-v2"
 import { NewThreadDialog } from "@/components/new-thread-dialog"
 import { ThreadDetailDialog } from "@/components/thread-detail-dialog"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { getThreads, type ThreadWithAuthor } from "@/lib/supabase/client-queries"
+import { useRouter } from "next/navigation"
 
 const categories = [
   { id: "all", label: "All" },
@@ -16,30 +17,37 @@ const categories = [
   { id: "help", label: "Help" },
 ]
 
-// Add mock data for tags and likes
-const threadsWithExtras = mockThreads.map((thread, i) => ({
-  ...thread,
-  tags: thread.category === "show-tell" ? ["saas-killer", "build-in-public"] : 
-        thread.category === "help" ? ["question", "stripe"] : 
-        thread.category === "announcements" ? ["weekly-challenge", "admin"] : 
-        ["discussion"],
-  likes: 10 + (i * 7) % 40
-}))
-
 const THREADS_PER_PAGE = 20
 
 export default function ThreadsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [isNewThreadOpen, setIsNewThreadOpen] = useState(false)
-  const [selectedThread, setSelectedThread] = useState<typeof threadsWithExtras[0] | null>(null)
+  const [selectedThread, setSelectedThread] = useState<ThreadWithAuthor | null>(null)
   const [isThreadDetailOpen, setIsThreadDetailOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [threads, setThreads] = useState<ThreadWithAuthor[]>([])
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
-  // Filter threads
-  const filteredThreads = threadsWithExtras.filter(thread => {
-    const matchesCategory = selectedCategory === "all" || thread.category === selectedCategory
-    return matchesCategory
-  })
+  // Fetch threads on mount and category change
+  useEffect(() => {
+    async function fetchThreads() {
+      setLoading(true)
+      try {
+        const data = await getThreads(selectedCategory)
+        setThreads(data)
+      } catch (error) {
+        console.error('Error fetching threads:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchThreads()
+  }, [selectedCategory])
+
+  // Filter threads is now just the threads from database
+  const filteredThreads = threads
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredThreads.length / THREADS_PER_PAGE)
@@ -47,9 +55,15 @@ export default function ThreadsPage() {
   const endIndex = startIndex + THREADS_PER_PAGE
   const currentThreads = filteredThreads.slice(startIndex, endIndex)
 
-  const handleThreadClick = (thread: typeof threadsWithExtras[0]) => {
+  const handleThreadClick = (thread: ThreadWithAuthor) => {
     setSelectedThread(thread)
     setIsThreadDetailOpen(true)
+  }
+  
+  const handleThreadCreated = (newThread: ThreadWithAuthor) => {
+    setThreads([newThread, ...threads])
+    setIsNewThreadOpen(false)
+    router.refresh()
   }
 
   return (
@@ -79,20 +93,28 @@ export default function ThreadsPage() {
 
       {/* Threads list */}
       <div className="space-y-3">
-        {currentThreads.map((thread) => (
-          <ThreadCardV2 
-            key={thread.id} 
-            thread={thread}
-            onClick={() => handleThreadClick(thread)}
-          />
-        ))}
-        
-        {currentThreads.length === 0 && (
+        {loading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              No threads found. Be the first to start a discussion!
-            </p>
+            <p className="text-muted-foreground">Loading threads...</p>
           </div>
+        ) : (
+          <>
+            {currentThreads.map((thread) => (
+              <ThreadCardV2 
+                key={thread.id} 
+                thread={thread}
+                onClick={() => handleThreadClick(thread)}
+              />
+            ))}
+            
+            {currentThreads.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  No threads found. Be the first to start a discussion!
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -178,6 +200,7 @@ export default function ThreadsPage() {
       <NewThreadDialog 
         open={isNewThreadOpen}
         onOpenChange={setIsNewThreadOpen}
+        onThreadCreated={handleThreadCreated}
       />
       
       <ThreadDetailDialog
