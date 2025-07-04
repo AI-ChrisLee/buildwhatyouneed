@@ -1,19 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { loginSchema } from '@/lib/validations'
+import { authRateLimit } from '@/lib/rate-limiter'
+import { z } from 'zod'
 
 export async function POST(request: Request) {
   const supabase = createClient()
   
   try {
-    const { email, password } = await request.json()
-
-    // Simple validation
-    if (!email || !password) {
+    // Get IP for rate limiting
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const { allowed, remaining } = await authRateLimit(ip)
+    
+    if (!allowed) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
+        { error: 'Too many login attempts. Please try again later.' },
+        { status: 429 }
       )
     }
+    
+    const body = await request.json()
+    
+    // Validate input
+    const validatedData = loginSchema.parse(body)
+    const { email, password } = validatedData
 
     // Sign in
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -44,6 +54,13 @@ export async function POST(request: Request) {
       }
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0].message },
+        { status: 400 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Something went wrong' },
       { status: 500 }

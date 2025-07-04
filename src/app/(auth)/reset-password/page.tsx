@@ -55,22 +55,8 @@ export default function ResetPasswordPage() {
         // Password updated successfully
         alert("Password updated successfully!")
         
-        // Check if user has active subscription
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data: subscription } = await supabase
-            .from('stripe_subscriptions')
-            .select('status')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .single()
-          
-          if (subscription) {
-            router.push('/threads')
-          } else {
-            router.push('/payment')
-          }
-        }
+        // Redirect to home page after password reset
+        router.push('/')
       }
     } catch (err) {
       setError("Something went wrong. Please try again.")

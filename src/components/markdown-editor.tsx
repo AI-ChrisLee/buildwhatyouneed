@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { marked } from "marked"
+import DOMPurify from "dompurify"
 
 interface MarkdownEditorProps {
   value: string
@@ -109,14 +111,27 @@ export function MarkdownEditor({
   )
 }
 
-// Simple markdown renderer (in production, use a proper markdown parser)
+// Secure markdown renderer using marked and DOMPurify
 function renderMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="underline">$1</a>')
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/\n/g, "<br />")
+  // Configure marked for security
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+  })
+  
+  // Parse markdown to HTML
+  const rawHtml = marked(text)
+  
+  // Sanitize HTML to prevent XSS
+  if (typeof window !== 'undefined') {
+    return DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'code', 'pre', 'blockquote', 
+                     'ul', 'ol', 'li', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+      ALLOWED_ATTR: ['href', 'target', 'rel'],
+      ALLOW_DATA_ATTR: false,
+    })
+  }
+  
+  // Server-side fallback (no sanitization available)
+  return rawHtml
 }

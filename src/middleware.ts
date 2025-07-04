@@ -29,18 +29,45 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Redirect auth routes to about page
-  if (['/login', '/signup'].includes(pathname)) {
-    return NextResponse.redirect(new URL('/about', request.url))
-  }
-
   // Public routes that don't require auth
-  const publicRoutes = ['/', '/join', '/about', '/terms', '/privacy']
+  const publicRoutes = ['/', '/terms', '/privacy']
   const isPublicRoute = publicRoutes.includes(pathname)
+  
+  // If user is accessing root and is authenticated with subscription, redirect to /threads
+  if (pathname === '/' && user) {
+    // Check if user has active subscription
+    const { data: subscription } = await supabase
+      .from('stripe_subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle()
+    
+    // Check if user is admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    
+    if (subscription || userData?.is_admin) {
+      return NextResponse.redirect(new URL('/threads', request.url))
+    }
+  }
+  
+  // If it's a public route, just return the response without auth checks
+  if (isPublicRoute) {
+    return response
+  }
+  
+  // Redirect auth routes to home page if user is already logged in
+  if (['/login', '/signup'].includes(pathname) && user) {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
 
   // If not logged in and trying to access protected route
   if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/about', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   // If logged in, check subscription status for community routes
@@ -62,9 +89,16 @@ export async function middleware(request: NextRequest) {
         .eq('status', 'active')
         .maybeSingle()
 
-      // No active subscription - redirect to payment
-      if (!subscription && pathname !== '/payment') {
-        return NextResponse.redirect(new URL('/payment', request.url))
+      // Check if user is admin
+      const { data: userData } = await supabase
+        .from('users')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single()
+      
+      // No active subscription and not admin - redirect to home
+      if (!subscription && !userData?.is_admin) {
+        return NextResponse.redirect(new URL('/', request.url))
       }
     }
 

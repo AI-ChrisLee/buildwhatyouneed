@@ -1,462 +1,380 @@
+"use client"
+
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AvatarGradient } from "@/components/ui/avatar-gradient"
+import { Users, User, Calendar, DollarSign, BookOpen, Code, Zap, Edit, Lock } from "lucide-react"
+import { ProtectedNavBar } from "@/components/protected-navbar"
 import Link from "next/link"
-import { mockStats } from "@/lib/mock-data"
-import { ArrowRight, CheckCircle2, Play, DollarSign, Users, Zap } from "lucide-react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { isCurrentUserAdmin } from "@/lib/supabase/admin-actions"
+import PaymentModal from "@/components/payment-modal"
+import { useRouter, useSearchParams } from "next/navigation"
+import { CommunityBadge } from "@/components/community-badge"
 
-export default function SalesPage() {
+export default function HomePage() {
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [realStats, setRealStats] = useState({
+    memberCount: 0,
+    adminCount: 0
+  })
+  const [recentMembers, setRecentMembers] = useState<any[]>([])
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [checkingPayment, setCheckingPayment] = useState(false)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'none' | 'active' | 'past_due'>('loading')
+  const [selectedHeroImage, setSelectedHeroImage] = useState(0)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const content = {
+    title: "Build What You Need",
+    subtitle: "Stop paying for SaaS. Start building.",
+    mainDescription: "The days of overpriced SaaS are over.",
+    memberCount: "2k",
+    onlineCount: "8",
+    adminCount: "10",
+    learnItems: [
+      "Build tools that replace expensive SaaS subscriptions",
+      "Save thousands of dollars per month",
+      "Own your tools and data completely"
+    ],
+    benefitItems: [
+      "Access to code templates that replace $1000s in SaaS costs",
+      "Step-by-step courses on building your own tools",
+      "Community support from experienced builders",
+      "Weekly challenges to practice your skills"
+    ],
+    footerText: "Join for just $97/month. Cancel anytime."
+  }
+  const supabase = createClient()
+
+  useEffect(() => {
+    checkAdminStatus()
+    fetchRealStats()
+    checkUser()
+    setLoading(false)
+  }, [])
+
+  async function checkAdminStatus() {
+    const adminStatus = await isCurrentUserAdmin()
+    setIsAdmin(adminStatus)
+  }
+
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    setUser(user)
+    
+    if (user) {
+      // Check subscription status
+      const { data: subscriptions } = await supabase
+        .from('stripe_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+      
+      if (subscriptions && subscriptions.length > 0) {
+        setSubscriptionStatus('active')
+      } else {
+        setSubscriptionStatus('none')
+      }
+    } else {
+      setSubscriptionStatus('none')
+    }
+  }
+
+  // Subscribe to auth changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  async function handleJoinClick() {
+    setCheckingPayment(true)
+    
+    if (!user) {
+      // Not logged in, redirect to signup
+      router.push('/signup')
+      return
+    }
+
+    // Check if user already has a subscription
+    const { data: subscriptions } = await supabase
+      .from('stripe_subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+    
+    const subscription = subscriptions && subscriptions.length > 0 ? subscriptions[0] : null
+
+    if (subscription) {
+      // Already subscribed, redirect to threads
+      router.push('/threads')
+    } else {
+      // Show payment modal
+      setShowPaymentModal(true)
+    }
+    
+    setCheckingPayment(false)
+  }
+
+  async function fetchRealStats() {
+    try {
+      // Try to fetch member count - don't let errors break the page
+      const { count: memberCount } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+      
+      setRealStats({
+        memberCount: memberCount || 0,
+        adminCount: 1
+      })
+
+      // Try to fetch recent members - if it fails, just use empty array
+      const { data: members } = await supabase
+        .from('users')
+        .select('id, full_name, email')
+        .order('created_at', { ascending: false })
+        .limit(8)
+
+      if (members) {
+        setRecentMembers(members)
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      // Don't crash - just use defaults
+      setRealStats({
+        memberCount: 0,
+        adminCount: 1
+      })
+    }
+  }
+
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Hero Section */}
-      <section className="w-full py-12 md:py-24">
-        <div className="mx-auto max-w-[940px] px-4">
-          <div className="text-center space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-                Build What You Need: From Zero to Clone in 3 Hours
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Watch me build a $419/mo SaaS tool live using AI
-              </p>
-            </div>
+    <div className="min-h-screen bg-background">
+      <ProtectedNavBar />
+      {/* Admin Edit Button */}
+      {isAdmin && (
+        <div className="border-b">
+          <div className="max-w-[1080px] mx-auto px-4 md:px-6 py-3 flex justify-end">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/home">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Page
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
 
-            <div className="max-w-2xl mx-auto">
-              <div className="aspect-video bg-black rounded-lg shadow-2xl overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
-                    <Play className="h-10 w-10 text-white ml-1" fill="white" />
+      {/* Main content */}
+      <div className="max-w-[1080px] mx-auto px-4 md:px-6 py-6">
+        <div className="flex gap-6">
+          <div className="flex-1 min-w-0">
+        {/* Success message after payment */}
+        {searchParams.get('success') === 'true' && subscriptionStatus === 'active' && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-green-800 font-medium">
+              🎉 Welcome to Build What You Need! Your membership is now active.
+            </p>
+          </div>
+        )}
+        
+        <div className="space-y-8">
+            {/* Hero Section */}
+            <div className="space-y-4">
+              {/* Main Hero */}
+              <div className="rounded-xl overflow-hidden relative aspect-[16/9]">
+                {/* Different content based on selected image */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${
+                  selectedHeroImage === 0 ? 'from-gray-900 to-gray-800' :
+                  selectedHeroImage === 1 ? 'from-blue-900 to-blue-800' :
+                  selectedHeroImage === 2 ? 'from-green-900 to-green-800' :
+                  selectedHeroImage === 3 ? 'from-purple-900 to-purple-800' :
+                  'from-pink-900 to-pink-800'
+                }`}>
+                  {/* Placeholder for Wistia video or images - will be replaced with actual content */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {selectedHeroImage === 0 ? (
+                      // Main video placeholder
+                      <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                        </svg>
+                      </div>
+                    ) : (
+                      // Image placeholder
+                      <div className="text-center">
+                        <div className="text-white/60 text-2xl font-medium">Image {selectedHeroImage}</div>
+                        <p className="text-white/40 text-sm mt-2">Placeholder for actual image content</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+              
+              {/* Thumbnail Images */}
+              <div className="grid grid-cols-5 gap-2">
+                {[0, 1, 2, 3, 4].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedHeroImage(index)}
+                    className={`relative aspect-video rounded-lg overflow-hidden transition-all ${
+                      selectedHeroImage === index 
+                        ? 'ring-2 ring-primary ring-offset-2' 
+                        : 'hover:opacity-80'
+                    }`}
+                  >
+                    <div className={`w-full h-full bg-gradient-to-br ${
+                      index === 0 ? 'from-gray-700 to-gray-600' :
+                      index === 1 ? 'from-blue-700 to-blue-600' :
+                      index === 2 ? 'from-green-700 to-green-600' :
+                      index === 3 ? 'from-purple-700 to-purple-600' :
+                      'from-pink-700 to-pink-600'
+                    }`}>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {index === 0 ? (
+                          <svg className="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                          </svg>
+                        ) : (
+                          <span className="text-white/60 text-xs">Image {index}</span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-8 space-y-4 flex flex-col items-center">
-              <Link href="/about">
-                <Button size="lg" className="text-lg px-8 h-14 flex items-center gap-2">
-                  Get My AI Prompts + Template
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                Join the founding 1000 • 153 spots left at $97/month
+            {/* Stats */}
+            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                <span>Private</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span className="font-semibold text-foreground">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || '2.1k'} members</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">$97/month</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                <span>By AI Chris Lee</span>
+              </div>
+            </div>
+
+            {/* Recent Members */}
+            {recentMembers.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Recent members</h3>
+                <div className="flex -space-x-2">
+                  {recentMembers.slice(0, 10).map((member) => (
+                    <div key={member.id} className="relative group">
+                      <AvatarGradient 
+                        seed={member.email} 
+                        className="h-10 w-10 rounded-full border-2 border-background ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2 group-hover:ring-offset-background"
+                      />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 whitespace-nowrap transition-opacity">
+                        {member.full_name || member.email?.split('@')[0]}
+                      </div>
+                    </div>
+                  ))}
+                  {realStats.memberCount > 10 && (
+                    <div className="h-10 w-10 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">+{realStats.memberCount - 10}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Description */}
+            <div className="space-y-6">
+              <p className="text-base leading-relaxed">
+                {content.mainDescription}
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Learn how to:</h3>
+                <div className="space-y-3">
+                  {content.learnItems.map((item, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="text-xs font-medium">{index + 1}</span>
+                      </div>
+                      <span className="text-sm leading-relaxed">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-      {/* Future Projection Section */}
-      <section className="w-full py-16 bg-gray-50">
-        <div className="mx-auto max-w-[940px] px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Your Next 30 Days</h2>
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              {/* Timeline line */}
-              <div className="absolute left-5 md:left-8 top-5 md:top-8 bottom-5 md:bottom-8 w-0.5 bg-gray-300"></div>
-              
-              {/* Week 1 */}
-              <div className="relative flex items-start mb-8">
-                <div className="flex-shrink-0 w-10 h-10 md:w-16 md:h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm md:text-lg z-10">
-                  W1
-                </div>
-                <div className="ml-6 md:ml-8 bg-white rounded-lg p-4 md:p-6 shadow-sm flex-1">
-                  <h3 className="font-semibold text-base md:text-lg mb-2">Cancel your first $200/mo subscription</h3>
-                  <p className="text-muted-foreground text-xs md:text-sm">Start your journey by replacing your most expensive tool</p>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Here's what you get:</h3>
+                <div className="grid gap-3">
+                  {content.benefitItems.map((item, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                      <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm leading-relaxed">{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              {/* Week 2 */}
-              <div className="relative flex items-start mb-8">
-                <div className="flex-shrink-0 w-10 h-10 md:w-16 md:h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm md:text-lg z-10">
-                  W2
-                </div>
-                <div className="ml-6 md:ml-8 bg-white rounded-lg p-4 md:p-6 shadow-sm flex-1">
-                  <h3 className="font-semibold text-base md:text-lg mb-2">Build your second tool (save another $400/mo)</h3>
-                  <p className="text-muted-foreground text-xs md:text-sm">Double down on what works, compound your savings</p>
-                </div>
-              </div>
-              
-              {/* Week 3 */}
-              <div className="relative flex items-start mb-8">
-                <div className="flex-shrink-0 w-10 h-10 md:w-16 md:h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm md:text-lg z-10">
-                  W3
-                </div>
-                <div className="ml-6 md:ml-8 bg-white rounded-lg p-4 md:p-6 shadow-sm flex-1">
-                  <h3 className="font-semibold text-base md:text-lg mb-2">Help another founder escape SaaS prison</h3>
-                  <p className="text-muted-foreground text-xs md:text-sm">Share your wins, build together, grow the movement</p>
-                </div>
-              </div>
-              
-              {/* Week 4 */}
-              <div className="relative flex items-start">
-                <div className="flex-shrink-0 w-10 h-10 md:w-16 md:h-16 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-sm md:text-lg z-10">
-                  W4
-                </div>
-                <div className="ml-6 md:ml-8 bg-gradient-to-r from-green-50 to-white rounded-lg p-4 md:p-6 shadow-sm flex-1 border-2 border-green-200">
-                  <h3 className="font-semibold text-base md:text-lg mb-2">Be $800/mo richer and own everything</h3>
-                  <p className="text-muted-foreground text-xs md:text-sm">Full control, zero dependencies, infinite possibilities</p>
-                </div>
+
+              <div className="rounded-lg bg-muted/50 p-6 text-center space-y-4">
+                <p className="text-base">
+                  {content.footerText}
+                </p>
+                <Button 
+                  onClick={handleJoinClick} 
+                  size="lg" 
+                  className="min-w-[200px]"
+                  disabled={checkingPayment}
+                >
+                  {checkingPayment ? 'Loading...' : 
+                   (user && subscriptionStatus === 'active') ? 'View Community' : 
+                   'Join Now'}
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Join while it lasts.
+                </p>
               </div>
             </div>
-          </div>
-          <p className="text-center mt-12 text-lg font-medium">
-            This is your future. Join 1000 builders making it happen.
-          </p>
         </div>
-      </section>
-
-      {/* Problem Section */}
-      <section className="w-full py-12 md:py-24">
-        <div className="mx-auto max-w-[940px] px-4">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl font-bold tracking-tighter">
-              You're Drowning in SaaS Complexity
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Every month, you bleed money to tools that promised simplicity but delivered chaos
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center mb-4">
-                  <DollarSign className="h-6 w-6 text-red-600" />
-                </div>
-                <CardTitle>Financial Bleeding</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  You're paying for 37 different subscriptions, each promising to be "essential" for your business.
-                </p>
-                <div className="pt-2">
-                  <p className="text-2xl font-bold">$10,847/mo</p>
-                  <p className="text-sm text-muted-foreground">Average SaaS spend</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center mb-4">
-                  <Zap className="h-6 w-6 text-orange-600" />
-                </div>
-                <CardTitle>Feature Overwhelm</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  100+ features per tool, but you use 3. The rest? Bloat that slows you down and confuses your team.
-                </p>
-                <div className="pt-2">
-                  <p className="text-2xl font-bold">3%</p>
-                  <p className="text-sm text-muted-foreground">Features actually used</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle>Integration Hell</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Your data is scattered across 37 platforms. Nothing talks to each other. You're the human API.
-                </p>
-                <div className="pt-2">
-                  <p className="text-2xl font-bold">15hrs/week</p>
-                  <p className="text-sm text-muted-foreground">Wasted on tool juggling</p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
           
-          <div className="pt-12 flex justify-center">
-            <Link href="/signup">
-              <Button size="lg" className="text-lg px-8 h-14 flex items-center gap-2">
-                Stop the Bleeding Now
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
+          {/* Right Column - Community Badge (Desktop Only) */}
+          <aside className="hidden lg:block w-[280px] shrink-0">
+            <div className="sticky top-[90px]">
+              <CommunityBadge />
+            </div>
+          </aside>
         </div>
-      </section>
+      </div>
 
-      {/* Process Section */}
-      <section className="w-full border-t bg-muted/30">
-        <div className="mx-auto max-w-[940px] px-4 py-12 md:py-24">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter">
-                How This Works
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Simple 3-step process. No complexity.
-              </p>
-            </div>
-
-            <div className="space-y-12">
-              {/* Step 1 */}
-              <div className="grid gap-6 md:grid-cols-2 items-center">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                      <span className="text-xl font-bold">1</span>
-                    </div>
-                    <h3 className="text-2xl font-bold">Join Today</h3>
-                  </div>
-                  <p className="text-lg text-muted-foreground">
-                    Sign up in 60 seconds. Get instant access to everything. No onboarding flow. No setup wizard. Just immediate value.
-                  </p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Instant community access</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>All video content unlocked</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Code templates ready to copy</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="order-first md:order-last">
-                  <Card className="shadow-lg">
-                    <img
-                      src="/api/placeholder/600/400"
-                      alt="Join process"
-                      className="rounded-lg"
-                    />
-                  </Card>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="grid gap-6 md:grid-cols-2 items-center">
-                <div className="order-last md:order-first">
-                  <Card className="shadow-lg">
-                    <img
-                      src="/api/placeholder/600/400"
-                      alt="Weekly delivery"
-                      className="rounded-lg"
-                    />
-                  </Card>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                      <span className="text-xl font-bold">2</span>
-                    </div>
-                    <h3 className="text-2xl font-bold">We Deliver Code</h3>
-                  </div>
-                  <p className="text-lg text-muted-foreground">
-                    Every week we ship new templates, patterns, and solutions. Copy our exact code. Ask questions in office hours. Ship faster than ever.
-                  </p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>New templates every Tuesday</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Live coding sessions</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Direct help in office hours</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="grid gap-6 md:grid-cols-2 items-center">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                      <span className="text-xl font-bold">3</span>
-                    </div>
-                    <h3 className="text-2xl font-bold">You Save $10k/mo</h3>
-                  </div>
-                  <p className="text-lg text-muted-foreground">
-                    Replace your entire SaaS stack with code you control. Build exactly what you need. Never pay inflated prices again.
-                  </p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Cancel $10,847/mo in subscriptions</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Own your code forever</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                      <span>Build anything you want</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="order-first md:order-last">
-                  <Card className="shadow-lg">
-                    <img
-                      src="/api/placeholder/600/400"
-                      alt="Savings dashboard"
-                      className="rounded-lg"
-                    />
-                  </Card>
-                </div>
-              </div>
-            </div>
-          </div>
-      </section>
-
-{/* Scarcity & Pricing Section */}
-      <section className="w-full py-12 md:py-24">
-        <div className="mx-auto max-w-[940px] px-4">
-          <div className="text-center space-y-8">
-            <div className="flex items-center justify-center gap-2 text-2xl font-bold">
-              <span className="text-3xl">🔥</span>
-              <span>Founding Member Offer</span>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="text-4xl font-bold">
-                $97/month forever
-              </div>
-              <p className="text-lg text-muted-foreground">
-                (153 spots remaining)
-              </p>
-              <p className="text-sm">
-                → Price increases to $197 after founding 1000
-              </p>
-            </div>
-            
-            <div className="pt-4 flex justify-center">
-              <Link href="/signup">
-                <Button size="lg" className="text-lg px-8 h-14 flex items-center gap-2">
-                  Secure Your Founding Spot
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4 pt-8 border-t max-w-md mx-auto">
-              <div>
-                <div className="text-2xl font-bold">$2,400+</div>
-                <div className="text-sm text-muted-foreground">Your savings by Month 3</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">$291</div>
-                <div className="text-sm text-muted-foreground">Your investment</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">824%</div>
-                <div className="text-sm text-muted-foreground">ROI</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-{/* Risk Reversal Section */}
-      <section className="w-full py-12 md:py-24 bg-gray-50">
-        <div className="mx-auto max-w-[940px] px-4">
-          <div className="text-center space-y-8">
-            <h2 className="text-3xl font-bold">The 7-Day Builder Guarantee</h2>
-            
-            <div className="space-y-4 text-left max-w-md mx-auto">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                <span>Build your first tool in 7 days or full refund</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                <span>We start together on Day 1</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                <span>Daily office hours your first week</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-                <span>Can't build = our failure = your refund</span>
-              </div>
-            </div>
-            
-            <p className="text-lg font-medium">Zero risk. Just build.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Future Social Proof Section */}
-      <section className="w-full py-12 md:py-24">
-        <div className="mx-auto max-w-[940px] px-4">
-          <div className="text-center space-y-8">
-            <h2 className="text-3xl font-bold">The Founding 1000 Movement</h2>
-            
-            <p className="text-lg">When 1000 builders unite:</p>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              <div className="space-y-2">
-                <div className="text-3xl">💰</div>
-                <div className="text-2xl font-bold">$10M+</div>
-                <div className="text-sm text-muted-foreground">in collective SaaS savings/year</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl">🚀</div>
-                <div className="text-2xl font-bold">5,000+</div>
-                <div className="text-sm text-muted-foreground">tools built and owned</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl">⚡</div>
-                <div className="text-2xl font-bold">3 hours</div>
-                <div className="text-sm text-muted-foreground">average build time</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl">🔥</div>
-                <div className="text-2xl font-bold">Every</div>
-                <div className="text-sm text-muted-foreground">major SaaS disrupted</div>
-              </div>
-            </div>
-            
-            <p className="text-lg font-medium">Your name in the founding story.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="w-full py-12 md:py-24 bg-black text-white">
-        <div className="mx-auto max-w-[940px] px-4">
-          <div className="text-center space-y-8">
-            <h2 className="text-3xl font-bold">
-              Your Choice: Keep Bleeding or Start Building
-            </h2>
-            
-            <p className="text-lg">Join 847 builders who chose freedom</p>
-            
-            <div className="pt-4 flex justify-center">
-              <Link href="/signup">
-                <Button size="lg" variant="secondary" className="text-lg px-8 h-14 flex items-center gap-2">
-                  Join the Founding 1000
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-            
-            <p className="text-sm opacity-80">
-              $97/month while spots last • 7-day guarantee
-            </p>
-            
-            <p className="text-lg font-medium">
-              In 30 days: Own your stack or get every penny back.
-            </p>
-          </div>
-        </div>
-      </section>
+        {/* Payment Modal */}
+        <PaymentModal 
+          open={showPaymentModal} 
+          onOpenChange={setShowPaymentModal}
+          user={user}
+        />
     </div>
   )
 }

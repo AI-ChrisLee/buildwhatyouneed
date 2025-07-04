@@ -1,158 +1,174 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { AuthLeftSection } from "@/components/auth-left-section"
+import { Label } from "@/components/ui/label"
+import { createClient } from "@/lib/supabase/client"
 
 export default function SignupPage() {
-  const router = useRouter()
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    termsAccepted: false
-  })
+  const [error, setError] = useState("")
+  const router = useRouter()
+  const supabase = createClient()
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
-    
-    if (!formData.termsAccepted) {
-      alert("Please accept the terms and conditions")
-      return
-    }
-
     setLoading(true)
+    setError("")
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          full_name: formData.name,
-        }),
+      // Create auth user with metadata
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: `${firstName} ${lastName}`.trim()
+          }
+        }
       })
 
-      const result = await response.json()
+      if (authError) throw authError
 
-      if (response.ok) {
-        // Redirect to payment page after successful signup
-        router.push('/payment')
-      } else {
-        alert(result.error || 'Signup failed')
+      if (authData.user) {
+        // Create lead entry
+        const { error: leadError } = await supabase
+          .from('leads')
+          .insert({
+            email,
+            name: `${firstName} ${lastName}`.trim(),
+            stage: 'member',
+            user_id: authData.user.id,
+            source: 'signup'
+          })
+
+        if (leadError) {
+          console.error('Lead creation error:', leadError)
+        }
+
+        // Redirect to home page
+        router.push('/')
       }
-    } catch (error) {
-      alert('Something went wrong. Please try again.')
+    } catch (error: any) {
+      setError(error.message || "Failed to create account")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <div className="w-full max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="grid md:grid-cols-2">
-            {/* Left Column - Video and Description */}
-            <AuthLeftSection />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="max-w-md w-full">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center justify-center gap-2 mb-8">
+            <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">B</span>
+            </div>
+            <span className="font-semibold text-xl">Build What You Need</span>
+          </Link>
+        </div>
 
-            {/* Right Column - Signup Form */}
-            <div className="p-8 md:p-12 bg-gray-50">
-              <div className="space-y-6">
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold">
-                    Save this system with 7-day guarantee
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Join a community of builders who stopped bleeding money to overpriced software.
-                  </p>
-                </div>
+        {/* Form Card */}
+        <div className="rounded-lg border bg-card p-8 shadow-sm">
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold tracking-tight">Create your account</h2>
+              <p className="text-sm text-muted-foreground mt-1">Join Build What You Need</p>
+            </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      placeholder="First and last name"
-                      className="h-12 text-base"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                      autoComplete="name"
-                    />
-                  </div>
-
-                  <div>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Business email address"
-                      className="h-12 text-base"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                      autoComplete="email"
-                    />
-                  </div>
-
-                  <div>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="Password"
-                      className="h-12 text-base"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      required
-                      autoComplete="new-password"
-                    />
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Checkbox 
-                      id="terms" 
-                      className="mt-1"
-                      checked={formData.termsAccepted}
-                      onCheckedChange={(checked) => 
-                        setFormData({ ...formData, termsAccepted: checked as boolean })
-                      }
-                    />
-                    <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
-                      By creating an account you accept our{" "}
-                      <Link href="/terms" className="underline">
-                        terms & conditions
-                      </Link>{" "}
-                      and our{" "}
-                      <Link href="/privacy" className="underline">
-                        privacy policies
-                      </Link>
-                      . $97/month with 7-day 100% money-back guarantee. Build your first tool or get every penny back.
-                    </label>
-                  </div>
-
-                  <Button type="submit" size="lg" className="w-full h-12 text-lg" disabled={loading}>
-                    {loading ? "Creating account..." : "Create account & start building"}
-                  </Button>
-                </form>
-
-                <div className="text-center text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <Link href="/login" className="font-medium text-primary hover:underline">
-                    Login
-                  </Link>
-                </div>
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-sm font-medium">First name</Label>
+              <Input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                disabled={loading}
+              />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-sm font-medium">Last name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                disabled={loading}
+              />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                disabled={loading}
+              />
+                <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+              </div>
+
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md text-center">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? "Creating account..." : "Sign up"}
+              </Button>
+
+              <p className="text-xs text-muted-foreground text-center">
+                By signing up, you accept our{" "}
+                <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">
+                  terms
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">
+                  privacy policy
+                </Link>
+              </p>
+            </form>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link href="/login" className="text-foreground font-medium hover:underline">
+                  Log in
+                </Link>
+              </p>
             </div>
           </div>
         </div>

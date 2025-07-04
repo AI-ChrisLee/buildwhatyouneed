@@ -39,7 +39,7 @@ export function AuthGuard({
           .maybeSingle()
 
         if (!subscription) {
-          router.push('/payment')
+          router.push('/')
           return
         }
       }

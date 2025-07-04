@@ -1,9 +1,15 @@
 "use client"
 
-import { NavBar } from "@/components/navbar"
-import { CommunityBadge } from "@/components/community-badge"
+import { ProtectedNavBar } from "@/components/protected-navbar"
 import { AuthGuard } from "@/components/auth-guard"
 import { usePathname } from "next/navigation"
+import dynamic from "next/dynamic"
+
+// Lazy load the community badge since it's not critical for initial render
+const CommunityBadge = dynamic(() => import("@/components/community-badge").then(mod => ({ default: mod.CommunityBadge })), {
+  loading: () => <div className="h-96 animate-pulse bg-gray-100 rounded-lg" />,
+  ssr: false
+})
 
 export default function CommunityLayout({
   children,
@@ -12,28 +18,32 @@ export default function CommunityLayout({
 }) {
   const pathname = usePathname()
   
-  // Show community badge only on these pages (not on about since it has its own)
+  // Show community badge on these pages with 2-column layout
   const showCommunityBadge = ['/threads', '/classroom', '/calendar'].includes(pathname)
 
-  return (
-    <AuthGuard requireSubscription={true}>
-      <div className="min-h-screen">
-        <NavBar />
-        <main className="container mx-auto py-6">
-          <div className="mx-auto max-w-[1050px]">
-            {showCommunityBadge ? (
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-6">
-                <div>{children}</div>
-                <aside className="hidden lg:block">
+  const content = (
+    <div className="min-h-screen bg-background">
+      <ProtectedNavBar />
+      <main className="pt-4 md:pt-6">
+        <div className="max-w-[1080px] mx-auto">
+          {showCommunityBadge ? (
+            <div className="flex gap-6 px-4 md:px-6">
+              <div className="flex-1 min-w-0">{children}</div>
+              <aside className="hidden lg:block w-[280px] shrink-0">
+                <div className="sticky top-[90px]">
                   <CommunityBadge />
-                </aside>
-              </div>
-            ) : (
-              children
-            )}
-          </div>
-        </main>
-      </div>
-    </AuthGuard>
+                </div>
+              </aside>
+            </div>
+          ) : (
+            <div className="px-4 md:px-6">
+              {children}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   )
+
+  return content
 }

@@ -1,4 +1,4 @@
-import { createServiceClient } from '@/lib/supabase/service'
+import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
@@ -17,7 +17,8 @@ export async function POST(request: Request) {
   console.log('Time:', new Date().toISOString())
   
   const body = await request.text()
-  const signature = headers().get('stripe-signature')
+  const headersList = await headers()
+  const signature = headersList.get('stripe-signature')
 
   if (!signature) {
     console.error('No Stripe signature header found')
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
   }
 
   // Use service role client for webhook operations
-  const supabase = createServiceClient()
+  const supabase = await createClient()
 
   console.log(`Received webhook event: ${event.type}`)
 

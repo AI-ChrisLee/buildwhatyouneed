@@ -1,19 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { signupSchema } from '@/lib/validations'
+import { z } from 'zod'
 
 export async function POST(request: Request) {
   const supabase = createClient()
   
   try {
-    const { email, password, full_name } = await request.json()
-
-    // Simple validation
-    if (!email || !password || !full_name) {
-      return NextResponse.json(
-        { error: 'Email, password, and name are required' },
-        { status: 400 }
-      )
-    }
+    const body = await request.json()
+    
+    // Validate input
+    const validatedData = signupSchema.parse(body)
+    const { email, password, full_name } = validatedData
 
     // Create user without email confirmation
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -57,6 +55,13 @@ export async function POST(request: Request) {
       }
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0].message },
+        { status: 400 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Something went wrong' },
       { status: 500 }

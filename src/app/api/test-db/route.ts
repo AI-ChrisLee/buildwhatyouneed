@@ -1,63 +1,65 @@
-import { createServiceClient } from '@/lib/supabase/service'
-import { NextResponse } from 'next/server'
+import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
 
 export async function GET() {
+  const supabase = createClient()
+  
   try {
-    const supabase = createServiceClient()
+    // Test basic connection
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    // Test 1: Check if we can query users
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id')
+    // Test users table with different queries
+    const { count: userCount, error: userError } = await supabase
+      .from("users")
+      .select("*", { count: "exact", head: true })
+    
+    // Test a simple select to see if RLS is the issue
+    const { data: userData, error: userSelectError } = await supabase
+      .from("users")
+      .select("id")
       .limit(1)
     
-    // Test 2: Check if we can query stripe_customers
-    const { data: customers, error: customersError } = await supabase
-      .from('stripe_customers')
-      .select('user_id')
-      .limit(1)
+    // Test leads table
+    const { error: leadsError } = await supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
     
-    // Test 3: Check if we can query stripe_subscriptions
-    const { data: subscriptions, error: subscriptionsError } = await supabase
-      .from('stripe_subscriptions')
-      .select('id')
-      .limit(1)
+    // Test auth users count
+    const { data: authUsers, error: authUsersError } = await supabase.auth.admin?.listUsers()
     
-    // Test 4: Try to insert a test record (we'll delete it immediately)
-    const testUserId = '00000000-0000-0000-0000-000000000000'
-    const testSubId = 'test_sub_' + Date.now()
+    // Test if tables exist and are accessible
+    const tables = {
+      users: !userError,
+      leads: !leadsError,
+      auth: !authError,
+    }
     
-    const { data: insertData, error: insertError } = await supabase
-      .from('stripe_subscriptions')
-      .insert({
-        id: testSubId,
-        user_id: testUserId,
-        status: 'test',
-        current_period_end: null
-      })
-      .select()
-    
-    // Clean up test record if it was created
-    if (!insertError) {
-      await supabase
-        .from('stripe_subscriptions')
-        .delete()
-        .eq('id', testSubId)
+    // Check specific table errors
+    const detailedErrors = {
+      auth: authError?.message || null,
+      users: userError?.message || null,
+      userSelect: userSelectError?.message || null,
+      leads: leadsError?.message || null,
+      authUsers: authUsersError?.message || "Admin API not available",
     }
     
     return NextResponse.json({
-      success: true,
-      tests: {
-        users: { success: !usersError, error: usersError?.message },
-        stripe_customers: { success: !customersError, error: customersError?.message },
-        stripe_subscriptions: { success: !subscriptionsError, error: subscriptionsError?.message },
-        insert_test: { success: !insertError, error: insertError?.message, data: insertData }
+      status: "ok",
+      currentUser: user?.email || null,
+      userCount: userCount || 0,
+      userData: userData || null,
+      tables,
+      errors: detailedErrors,
+      hints: {
+        noAuth: !user ? "No authenticated user - RLS policies may block access" : null,
+        rlsIssue: userError && !userSelectError ? "RLS might be blocking count queries" : null,
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      status: "error",
+      message: error.message,
+      hint: "Check if database is running and tables exist"
     }, { status: 500 })
   }
 }

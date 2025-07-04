@@ -29,7 +29,7 @@ export function CommunitySidebar() {
           <span>COMMUNITY</span>
         </div>
         <h2 className="text-2xl font-bold mb-1">Build What You Need</h2>
-        <p className="text-sm text-black/60 mb-4">buildwhatyouneed.com</p>
+        <p className="text-sm text-black/60 mb-4">aichrislee.com</p>
         <p className="text-sm mb-6">
           Learn how to build what you need without expensive SaaS. 
           Save thousands and own your tools.

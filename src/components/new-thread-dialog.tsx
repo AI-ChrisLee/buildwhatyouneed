@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -139,6 +140,9 @@ export function NewThreadDialog({ open, onOpenChange, onThreadCreated }: NewThre
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl p-0">
+        <VisuallyHidden>
+          <DialogTitle>Create a new thread</DialogTitle>
+        </VisuallyHidden>
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b">
           <Avatar className="h-10 w-10">

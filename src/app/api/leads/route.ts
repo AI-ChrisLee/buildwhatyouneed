@@ -1,28 +1,44 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { leadSchema } from '@/lib/validations'
+import { apiRateLimit } from '@/lib/rate-limiter'
+import { z } from 'zod'
 
 export async function POST(request: Request) {
   const supabase = createClient()
   
   try {
-    const body = await request.json()
-    const { email, name, source = 'landing_page', utm_source, utm_medium, utm_campaign } = body
-
-    if (!email) {
+    // Rate limiting
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
+    const { allowed } = await apiRateLimit(ip)
+    
+    if (!allowed) {
       return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
       )
     }
+    
+    const body = await request.json()
+    
+    // Map full_name to name for compatibility
+    if (body.full_name && !body.name) {
+      body.name = body.full_name
+    }
+    
+    // Validate input
+    const validatedData = leadSchema.parse(body)
+    const { email, full_name: name, pain_level, utm_source, utm_medium, utm_campaign } = validatedData
 
     // Insert or update lead
     const { data, error } = await supabase
       .from('leads')
       .upsert({
+        id: crypto.randomUUID(),
         email: email.toLowerCase(),
         name,
         stage: 'lead',
-        source,
+        source: 'landing_page',
         utm_source,
         utm_medium,
         utm_campaign,
@@ -43,8 +59,15 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({ data })
+    return NextResponse.json({ data }, { status: 201 })
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0].message },
+        { status: 400 }
+      )
+    }
+    
     console.error('Lead API error:', error)
     // Return error for debugging
     return NextResponse.json(

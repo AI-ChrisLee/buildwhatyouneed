@@ -88,28 +88,30 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-2xl">
-      <div className="mb-6">
-        <Link 
-          href="/threads" 
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to threads
-        </Link>
-      </div>
+    <div className="min-h-screen">
+      {/* Main content */}
+      <div className="px-4 md:px-6 py-6">
+        <div className="max-w-2xl space-y-6">
+          {/* Back link */}
+          <Link 
+            href="/threads" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to threads
+          </Link>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>
-            Update your account password. You'll need to enter your current password.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="current">Current Password</Label>
+          {/* Password form */}
+          <div className="rounded-lg border p-6">
+            <div className="space-y-1 mb-6">
+              <h2 className="text-lg font-semibold">Change Password</h2>
+              <p className="text-sm text-muted-foreground">
+                Update your account password. You'll need to enter your current password.
+              </p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current" className="text-sm font-medium">Current Password</Label>
               <Input
                 id="current"
                 type="password"
@@ -120,8 +122,8 @@ export default function ChangePasswordPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="new">New Password</Label>
+              <div className="space-y-2">
+                <Label htmlFor="new" className="text-sm font-medium">New Password</Label>
               <Input
                 id="new"
                 type="password"
@@ -135,8 +137,8 @@ export default function ChangePasswordPage() {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm">Confirm New Password</Label>
+              <div className="space-y-2">
+                <Label htmlFor="confirm" className="text-sm font-medium">Confirm New Password</Label>
               <Input
                 id="confirm"
                 type="password"
@@ -147,27 +149,31 @@ export default function ChangePasswordPage() {
               />
             </div>
 
-            {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-                {error}
-              </div>
-            )}
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                  {error}
+                </div>
+              )}
 
-            {success && (
-              <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
-                Password updated successfully! Redirecting...
-              </div>
-            )}
+              {success && (
+                <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
+                  Password updated successfully! Redirecting...
+                </div>
+              )}
 
-            <Button 
-              type="submit" 
-              disabled={loading || !currentPassword || !newPassword || !confirmPassword}
-            >
-              {loading ? "Updating..." : "Update Password"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="pt-2">
+                <Button 
+                  type="submit" 
+                  disabled={loading || !currentPassword || !newPassword || !confirmPassword}
+                  className="w-full sm:w-auto"
+                >
+                  {loading ? "Updating..." : "Update Password"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

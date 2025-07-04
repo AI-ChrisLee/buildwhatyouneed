@@ -25,7 +25,6 @@ export function NavBar() {
     { label: "Threads", href: "/threads" },
     { label: "Classroom", href: "/classroom" },
     { label: "Calendar", href: "/calendar" },
-    { label: "About", href: "/about" },
   ]
   
   useEffect(() => {

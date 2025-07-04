@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button"
 import { ThreadCardV2 } from "@/components/thread-card-v2"
 import { NewThreadDialog } from "@/components/new-thread-dialog"
 import { ThreadDetailDialog } from "@/components/thread-detail-dialog"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, MessageSquare } from "lucide-react"
 import { getThreads, type ThreadWithAuthor } from "@/lib/supabase/client-queries"
 import { useRouter } from "next/navigation"
+import { useMembership } from "@/hooks/use-membership"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const categories = [
-  { id: "all", label: "All" },
-  { id: "announcements", label: "Announcements" },
-  { id: "general", label: "General" },
-  { id: "show-tell", label: "Show & Tell" },
-  { id: "help", label: "Help" },
+  { id: "all", label: "All", description: "All threads" },
+  { id: "announcements", label: "Announcements", description: "Official updates" },
+  { id: "general", label: "General", description: "General discussion" },
+  { id: "show-tell", label: "Show & Tell", description: "Share your work" },
+  { id: "help", label: "Help", description: "Ask for help" },
 ]
 
 const THREADS_PER_PAGE = 20
@@ -28,6 +30,7 @@ export default function ThreadsPage() {
   const [threads, setThreads] = useState<ThreadWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { MembershipGate, AccessDeniedModal } = useMembership()
 
   // Fetch threads on mount and category change
   useEffect(() => {
@@ -63,138 +66,133 @@ export default function ThreadsPage() {
   const handleThreadCreated = (newThread: ThreadWithAuthor) => {
     setThreads([newThread, ...threads])
     setIsNewThreadOpen(false)
-    router.refresh()
+    // Remove router.refresh() to prevent losing form state
   }
 
   return (
-    <div className="space-y-6">
-      {/* Write something input */}
-      <div 
-        className="w-full p-4 border rounded-lg cursor-text hover:bg-muted/50 transition-colors"
-        onClick={() => setIsNewThreadOpen(true)}
-      >
-        <p className="text-muted-foreground">Write something...</p>
-      </div>
-
-      {/* Category filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {categories.map((category) => (
-          <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(category.id)}
-            className="whitespace-nowrap"
-          >
-            {category.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Threads list */}
-      <div className="space-y-3">
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading threads...</p>
-          </div>
-        ) : (
-          <>
-            {currentThreads.map((thread) => (
-              <ThreadCardV2 
-                key={thread.id} 
-                thread={thread}
-                onClick={() => handleThreadClick(thread)}
-              />
-            ))}
-            
-            {currentThreads.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  No threads found. Be the first to start a discussion!
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </Button>
-          
-          <div className="flex items-center gap-1">
-            {/* First page */}
-            <Button
-              variant={currentPage === 1 ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setCurrentPage(1)}
-              className="h-8 w-8 p-0"
-            >
-              1
+    <MembershipGate feature="Community Threads">
+      <div className="min-h-screen">
+        {/* Header */}
+        <div className="border-b">
+          <div className="flex items-center justify-between gap-4 px-4 md:px-6 py-3">
+            {/* Category tabs */}
+            <div className="overflow-x-auto flex-1">
+              <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+                <TabsList className="h-10 p-1 bg-transparent border-0 w-full sm:w-auto">
+                  {categories.map((category) => (
+                    <TabsTrigger
+                      key={category.id}
+                      value={category.id}
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 md:px-4 text-xs md:text-sm whitespace-nowrap"
+                    >
+                      {category.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
+            <Button onClick={() => setIsNewThreadOpen(true)} size="sm" className="shrink-0">
+              <Plus className="h-4 w-4 mr-2" />
+              New Thread
             </Button>
-            
-            {/* Show dots if needed */}
-            {currentPage > 3 && <span className="px-2">...</span>}
-            
-            {/* Pages around current */}
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(page => 
-                page !== 1 && 
-                page !== totalPages && 
-                Math.abs(page - currentPage) <= 1
-              )
-              .map(page => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className="h-8 w-8 p-0"
-                >
-                  {page}
-                </Button>
-              ))}
-            
-            {/* Show dots if needed */}
-            {currentPage < totalPages - 2 && <span className="px-2">...</span>}
-            
-            {/* Last page */}
-            {totalPages > 1 && (
-              <Button
-                variant={currentPage === totalPages ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setCurrentPage(totalPages)}
-                className="h-8 w-8 p-0"
-              >
-                {totalPages}
-              </Button>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="px-6 py-6">
+          {/* Threads list */}
+          <div className="space-y-0 divide-y">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-sm text-muted-foreground">Loading threads...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {currentThreads.map((thread) => (
+                  <ThreadCardV2 
+                    key={thread.id} 
+                    thread={thread}
+                    onClick={() => handleThreadClick(thread)}
+                  />
+                ))}
+                
+                {currentThreads.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <MessageSquare className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      No threads in {categories.find(c => c.id === selectedCategory)?.label.toLowerCase()}
+                    </p>
+                    <Button onClick={() => setIsNewThreadOpen(true)} variant="outline" size="sm">
+                      Start the first thread
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t pt-6 mt-6">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredThreads.length)} of {filteredThreads.length} threads
+              </p>
+              
+              <div className="flex items-center gap-2 justify-center sm:justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 px-2 sm:px-3"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </Button>
+                
+                <div className="flex items-center gap-0.5 sm:gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => 
+                      page === 1 || 
+                      page === totalPages || 
+                      Math.abs(page - currentPage) <= 1
+                    )
+                    .map((page, index, array) => (
+                      <div key={page} className="flex items-center">
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className="px-0.5 sm:px-1.5 text-muted-foreground text-xs sm:text-sm">...</span>
+                        )}
+                        <Button
+                          variant={currentPage === page ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs sm:text-sm"
+                        >
+                          {page}
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 px-2 sm:px-3"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-      
-      <div className="text-center text-sm text-muted-foreground mt-4">
-        {startIndex + 1}-{Math.min(endIndex, filteredThreads.length)} of {filteredThreads.length}
-      </div>
 
       {/* Dialogs */}
       <NewThreadDialog 
@@ -208,6 +206,9 @@ export default function ThreadsPage() {
         open={isThreadDetailOpen}
         onOpenChange={setIsThreadDetailOpen}
       />
-    </div>
+      
+        <AccessDeniedModal />
+      </div>
+    </MembershipGate>
   )
 }

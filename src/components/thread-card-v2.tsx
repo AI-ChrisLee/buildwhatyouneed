@@ -1,7 +1,5 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Pin, MoreVertical, Trash2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
@@ -16,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { AvatarGradient } from "@/components/ui/avatar-gradient"
 
 interface ThreadCardProps {
   thread: ThreadWithAuthor
@@ -145,129 +144,114 @@ export function ThreadCardV2({ thread, onClick }: ThreadCardProps) {
     .substring(0, 150) + (thread.content.length > 150 ? "..." : "")
 
   return (
-    <Card 
-      className={`p-4 transition-colors hover:bg-muted/50 cursor-pointer ${thread.is_pinned ? 'border-primary' : ''}`}
+    <div 
+      className={`group px-4 md:px-6 py-4 transition-colors hover:bg-muted/50 cursor-pointer ${thread.is_pinned ? 'bg-muted/30' : ''}`}
       onClick={onClick}
     >
-      <div className="flex gap-3">
-        <Avatar>
-          <AvatarFallback>
-            {thread.author?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || thread.author?.email?.[0]?.toUpperCase() || 'U'}
-          </AvatarFallback>
-        </Avatar>
+      <div className="flex gap-3 md:gap-4">
+        <AvatarGradient 
+          seed={thread.author?.email || thread.author_id} 
+          className="h-8 w-8 md:h-10 md:w-10 rounded-full shrink-0" 
+        />
         
-        <div className="flex-1 min-w-0 flex gap-4">
+        <div className="flex-1 min-w-0 flex gap-3 md:gap-4">
           <div className="flex-1">
-            {/* Author and time */}
-            <div className="flex items-center gap-2 text-sm">
-              <span className="font-medium">{thread.author?.full_name || thread.author?.email?.split('@')[0] || 'Unknown'}</span>
-              {thread.author?.founding_number && (
-                <>
-                  <span className="text-muted-foreground">|</span>
-                  <span className="font-bold">#{String(thread.author.founding_number).padStart(4, '0')}</span>
-                </>
-              )}
-              <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">{formatTimeAgo(thread.created_at)}</span>
-              {thread.category === "announcements" && thread.author?.is_admin && (
-                <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-                  Admin
-                </span>
-              )}
-            </div>
-
-            {/* Title with pin/lock indicators */}
-            <div className="flex items-center gap-2 mt-1">
-              <h3 className="font-semibold text-lg line-clamp-1 flex-1">
-                {thread.title}
-              </h3>
-              {thread.is_pinned && (
-                <Pin className="h-4 w-4 text-primary flex-shrink-0" />
-              )}
-            </div>
+            {/* Title */}
+            <h3 className="font-medium text-sm md:text-base leading-tight">
+              {thread.title}
+            </h3>
 
             {/* Preview text */}
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
               {previewText}
             </p>
 
-            {/* Category Tag and Stats */}
-            <div className="flex items-center gap-4 mt-3">
-              <span className="text-xs px-2 py-0.5 bg-secondary rounded-md">
-                #{thread.category}
+            {/* Meta info */}
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2 md:mt-3 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {thread.author?.full_name || thread.author?.email?.split('@')[0] || 'Unknown'}
               </span>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <MessageSquare className="h-4 w-4" />
-                <span>{thread.comment_count}</span>
-              </div>
+              {thread.author?.founding_number && (
+                <>
+                  <span className="hidden sm:inline">·</span>
+                  <span className="font-medium">
+                    #{String(thread.author.founding_number).padStart(4, '0')}
+                  </span>
+                </>
+              )}
+              <span className="hidden sm:inline">·</span>
+              <span>{formatTimeAgo(thread.created_at)}</span>
+              <span className="hidden sm:inline">·</span>
+              <span className="capitalize">{thread.category.replace('-', ' ')}</span>
+              {thread.is_pinned && (
+                <>
+                  <span className="hidden sm:inline">·</span>
+                  <div className="flex items-center gap-1">
+                    <Pin className="h-3 w-3" />
+                    <span>Pinned</span>
+                  </div>
+                </>
+              )}
+              {thread.comment_count > 0 && (
+                <>
+                  <span className="hidden sm:inline">·</span>
+                  <div className="flex items-center gap-1">
+                    <MessageSquare className="h-3 w-3" />
+                    <span>{thread.comment_count} {thread.comment_count === 1 ? 'reply' : 'replies'}</span>
+                  </div>
+                </>
+              )}
+              {thread.category === "announcements" && thread.author?.is_admin && (
+                <>
+                  <span className="hidden sm:inline">·</span>
+                  <span className="font-medium text-primary">Admin</span>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Media Preview - Small on the right */}
+          {/* Media Preview - Minimal on the right */}
           {media && (
             <div className="flex-shrink-0">
               {media.type === 'image' && (
                 <img 
                   src={media.url} 
                   alt="Thread image"
-                  className="w-32 h-24 object-cover rounded-lg"
+                  className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-md"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
               )}
               {media.type === 'youtube' && (
-                <div className="relative w-32 h-24 rounded-lg overflow-hidden bg-black group">
+                <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-md overflow-hidden bg-black">
                   <img 
                     src={`https://img.youtube.com/vi/${media.videoId}/mqdefault.jpg`}
                     alt="Video thumbnail"
                     className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {media.type === 'loom' && (
-                <div className="w-32 h-24 bg-muted rounded-lg flex flex-col items-center justify-center gap-1">
-                  <span className="text-2xl">🔒</span>
-                  <span className="text-xs text-muted-foreground">Loom Video</span>
-                </div>
-              )}
-              {media.type === 'wistia' && (
-                <div className="relative w-32 h-24 rounded-lg overflow-hidden bg-black group">
-                  <img 
-                    src={`https://embed.wistia.com/deliveries/${media.videoId}.jpg`}
-                    alt="Wistia video thumbnail"
-                    className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Try alternative thumbnail URL
-                      const img = e.currentTarget as HTMLImageElement
-                      if (!img.src.includes('/image_crop_resized=')) {
-                        img.src = `https://fast.wistia.com/embed/medias/${media.videoId}/swatch`
-                      } else {
-                        img.style.display = 'none'
-                        img.parentElement!.classList.add('bg-blue-100')
-                        img.parentElement!.classList.remove('bg-black')
-                      }
+                      e.currentTarget.parentElement!.innerHTML = `
+                        <div class="w-full h-full bg-muted flex items-center justify-center">
+                          <svg class="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      `
                     }}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 bg-black/70 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
                       </svg>
                     </div>
                   </div>
                 </div>
               )}
-              {media.type === 'video' && (
-                <div className="w-32 h-24 bg-muted rounded-lg flex items-center justify-center">
-                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {(media.type === 'wistia' || media.type === 'loom' || media.type === 'video') && (
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-muted rounded-md flex items-center justify-center">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -279,7 +263,7 @@ export function ThreadCardV2({ thread, onClick }: ThreadCardProps) {
         
         {/* Admin/Author actions dropdown */}
         {(isAdmin || canDelete) && (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -310,6 +294,6 @@ export function ThreadCardV2({ thread, onClick }: ThreadCardProps) {
           </div>
         )}
       </div>
-    </Card>
+    </div>
   )
 }

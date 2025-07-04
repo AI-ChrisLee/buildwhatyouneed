@@ -54,7 +54,12 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  try {
+    await supabase.auth.getUser()
+  } catch (error) {
+    // Don't throw error, just log it - this prevents 403 from breaking the app
+    console.error('Error refreshing session:', error)
+  }
 
   return response
 }

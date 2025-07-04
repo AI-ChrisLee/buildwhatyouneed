@@ -57,8 +57,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/payment`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?canceled=true`,
       client_reference_id: userId,
       customer_email: userEmail,
       metadata: {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ url: session.url })
+    return NextResponse.json({ sessionId: session.id })
   } catch (error: any) {
     console.error('Stripe checkout error:', error)
     

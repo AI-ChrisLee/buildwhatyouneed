@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
-interface AboutContent {
+interface HomeContent {
   title: string
   subtitle: string
   mainDescription: string
@@ -24,14 +24,14 @@ interface AboutContent {
   footerText: string
 }
 
-export default function EditAboutPage() {
+export default function EditHomePage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   
-  const [content, setContent] = useState<AboutContent>({
+  const [content, setContent] = useState<HomeContent>({
     title: "Build What You Need",
     subtitle: "Stop paying for SaaS. Start building.",
     mainDescription: "The days of overpriced SaaS are over.",
@@ -59,7 +59,7 @@ export default function EditAboutPage() {
   async function checkAdminAndLoad() {
     const adminStatus = await isCurrentUserAdmin()
     if (!adminStatus) {
-      router.push('/about')
+      router.push('/')
       return
     }
     setIsAdmin(true)
@@ -69,7 +69,7 @@ export default function EditAboutPage() {
       const { data, error } = await supabase
         .from('site_content')
         .select('*')
-        .eq('page', 'about')
+        .eq('page', 'home')
         .single()
       
       if (data && !error) {
@@ -88,7 +88,7 @@ export default function EditAboutPage() {
       const { error } = await supabase
         .from('site_content')
         .upsert({
-          page: 'about',
+          page: 'home',
           content: JSON.stringify(content),
           updated_at: new Date().toISOString()
         }, {
@@ -97,7 +97,7 @@ export default function EditAboutPage() {
       
       if (error) throw error
       
-      router.push('/about')
+      router.push('/')
     } catch (error) {
       console.error('Error saving content:', error)
       alert('Failed to save changes')
@@ -117,11 +117,11 @@ export default function EditAboutPage() {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Edit About Page</h1>
+        <h1 className="text-3xl font-bold">Edit Home Page</h1>
         <Button variant="ghost" asChild>
-          <Link href="/about">
+          <Link href="/">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to About
+            Back to Home
           </Link>
         </Button>
       </div>
@@ -254,7 +254,7 @@ export default function EditAboutPage() {
 
         <div className="flex justify-end gap-4">
           <Button variant="outline" asChild>
-            <Link href="/about">Cancel</Link>
+            <Link href="/">Cancel</Link>
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save Changes"}
