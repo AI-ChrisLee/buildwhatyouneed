@@ -55,7 +55,7 @@ export function CommunityBadge() {
         .eq('user_id', user.id)
         .eq('status', 'active')
       
-      setHasActiveSubscription(subscriptions && subscriptions.length > 0)
+      setHasActiveSubscription(!!subscriptions && subscriptions.length > 0)
       
       // Check if user is admin
       const { data: userData } = await supabase

@@ -120,7 +120,7 @@ function renderMarkdown(text: string): string {
   })
   
   // Parse markdown to HTML
-  const rawHtml = marked(text)
+  const rawHtml = marked(text) as string
   
   // Sanitize HTML to prevent XSS
   if (typeof window !== 'undefined') {

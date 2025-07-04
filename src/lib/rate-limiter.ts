@@ -20,7 +20,8 @@ export function rateLimit(config: RateLimitConfig = { windowMs: 60000, max: 10 }
 
     // Clean up old entries periodically
     if (rateLimitStore.size > 10000) {
-      for (const [key, value] of rateLimitStore.entries()) {
+      const entries = Array.from(rateLimitStore.entries())
+      for (const [key, value] of entries) {
         if (value.resetTime < now) {
           rateLimitStore.delete(key)
         }

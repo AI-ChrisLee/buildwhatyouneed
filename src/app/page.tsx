@@ -6,14 +6,14 @@ import { AvatarGradient } from "@/components/ui/avatar-gradient"
 import { Users, User, Calendar, DollarSign, BookOpen, Code, Zap, Edit, Lock } from "lucide-react"
 import { ProtectedNavBar } from "@/components/protected-navbar"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-actions"
 import PaymentModal from "@/components/payment-modal"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CommunityBadge } from "@/components/community-badge"
 
-export default function HomePage() {
+function HomePageContent() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [realStats, setRealStats] = useState({
@@ -376,5 +376,13 @@ export default function HomePage() {
           user={user}
         />
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <HomePageContent />
+    </Suspense>
   )
 }

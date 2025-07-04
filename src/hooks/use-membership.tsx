@@ -64,7 +64,7 @@ export function useMembership() {
         .eq('user_id', user.id)
         .eq('status', 'active')
 
-      setHasAccess(subscriptions && subscriptions.length > 0)
+      setHasAccess(!!subscriptions && subscriptions.length > 0)
     } catch (error) {
       console.error('Error checking membership:', error)
       setHasAccess(false)

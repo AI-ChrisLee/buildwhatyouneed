@@ -2,9 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia"
-})
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST(request: Request) {
   try {
@@ -73,7 +71,7 @@ export async function POST(request: Request) {
         id: subscription.id,
         user_id: user.id,
         status: subscription.status,
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+        current_period_end: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000).toISOString() : null
       })
 
     if (subError) {
