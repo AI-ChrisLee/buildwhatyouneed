@@ -31,7 +31,7 @@ export default function SalesPage() {
             </div>
 
             <div className="mt-8 space-y-4 flex flex-col items-center">
-              <Link href="/signup">
+              <Link href="/about">
                 <Button size="lg" className="text-lg px-8 h-14 flex items-center gap-2">
                   Get My AI Prompts + Template
                   <ArrowRight className="h-5 w-5" />

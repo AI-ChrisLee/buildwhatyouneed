@@ -1,70 +1,54 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Users, User, Calendar, DollarSign, BookOpen, Code, Zap, Edit } from "lucide-react"
-import Link from "next/link"
-import { useState, useEffect } from "react"
+import { Users, School, DollarSign, Lock, Play } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { isCurrentUserAdmin } from "@/lib/supabase/admin-actions"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { AuthModal } from "@/components/auth-modal"
 
 export default function AboutPage() {
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'payment'>('signup')
+  const [user, setUser] = useState<any>(null)
+  const [hasSubscription, setHasSubscription] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const supabase = createClient()
+
+  // Stats
   const [realStats, setRealStats] = useState({
     memberCount: 0,
     adminCount: 0
   })
-  const [recentMembers, setRecentMembers] = useState<any[]>([])
-  const [content, setContent] = useState({
-    title: "Build What You Need",
-    subtitle: "Stop paying for SaaS. Start building.",
-    mainDescription: "The days of overpriced SaaS are over.",
-    memberCount: "2k",
-    onlineCount: "8",
-    adminCount: "10",
-    learnItems: [
-      "Build tools that replace expensive SaaS subscriptions",
-      "Save thousands of dollars per month",
-      "Own your tools and data completely"
-    ],
-    benefitItems: [
-      "Access to code templates that replace $1000s in SaaS costs",
-      "Step-by-step courses on building your own tools",
-      "Community support from experienced builders",
-      "Weekly challenges to practice your skills"
-    ],
-    footerText: "Join for just $97/month. Cancel anytime."
-  })
-  const supabase = createClient()
 
   useEffect(() => {
-    checkAdminStatus()
-    loadContent()
+    checkAuth()
     fetchRealStats()
   }, [])
 
-  async function checkAdminStatus() {
-    const adminStatus = await isCurrentUserAdmin()
-    setIsAdmin(adminStatus)
-  }
-
-  async function loadContent() {
+  async function checkAuth() {
     try {
-      const { data, error } = await supabase
-        .from('site_content')
-        .select('*')
-        .eq('page', 'about')
-        .single()
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
       
-      if (data && !error) {
-        setContent(JSON.parse(data.content))
+      if (user) {
+        const { data: subscription } = await supabase
+          .from('stripe_subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle()
+        
+        setHasSubscription(!!subscription)
       }
     } catch (error) {
-      console.error('Error loading content:', error)
+      console.error('Auth check error:', error)
+    } finally {
+      setIsLoading(false)
     }
-    setLoading(false)
   }
 
   async function fetchRealStats() {
@@ -90,207 +74,233 @@ export default function AboutPage() {
           console.error('Error fetching active subscriptions:', subError)
         }
 
+        const activeMemberCount = activeUsers?.length || 0
+
         // Fetch admin count
-        const { count: admins } = await supabase
+        const { data: admins, error: adminError } = await supabase
           .from('users')
-          .select('*', { count: 'exact', head: true })
+          .select('id')
           .eq('is_admin', true)
 
+        if (adminError) {
+          console.error('Error fetching admin count:', adminError)
+        }
+
+        const adminCount = admins?.length || 0
+
         setRealStats({
-          memberCount: activeUsers?.length || 0,
-          adminCount: admins || 0
+          memberCount: activeMemberCount,
+          adminCount: adminCount
         })
       }
-
-      // Fetch recent members for avatars
-      const { data: members } = await supabase
-        .from('users')
-        .select('id, full_name, email')
-        .order('created_at', { ascending: false })
-        .limit(8)
-
-      setRecentMembers(members || [])
     } catch (error) {
-      console.error('Error fetching real stats:', error)
+      console.error('Error fetching stats:', error)
     }
   }
 
+  const handleJoinClick = () => {
+    if (user) {
+      if (hasSubscription) {
+        router.push('/threads')
+      } else {
+        setAuthMode('payment')
+        setAuthModalOpen(true)
+      }
+    } else {
+      setAuthMode('signup')
+      setAuthModalOpen(true)
+    }
+  }
 
-  if (loading) {
+  const renderCTA = () => {
+    if (isLoading) {
+      return (
+        <Button size="lg" className="w-full text-lg" disabled>
+          Loading...
+        </Button>
+      )
+    }
+
+    if (user && hasSubscription) {
+      return (
+        <Button size="lg" className="w-full text-lg" onClick={() => router.push('/threads')}>
+          Go to Community
+        </Button>
+      )
+    }
+
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
+      <Button size="lg" className="w-full text-lg bg-yellow-400 hover:bg-yellow-500 text-black font-semibold" onClick={handleJoinClick}>
+        JOIN $119/month
+      </Button>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-6">
-      {/* Left Column - Main Content */}
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6 space-y-6">
-            {/* Admin Edit Button */}
-            {isAdmin && (
-              <div className="flex justify-end">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/admin/about">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Page
-                  </Link>
-                </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation Bar */}
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                <span className="text-white font-bold">B</span>
               </div>
+              <span className="font-semibold text-lg">Build What You Need</span>
+            </Link>
+            
+            {!user && (
+              <Button 
+                variant="ghost" 
+                className="text-gray-600"
+                onClick={() => {
+                  setAuthMode('login')
+                  setAuthModalOpen(true)
+                }}
+              >
+                LOG IN
+              </Button>
             )}
-            {/* Hero Section */}
-            <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg relative overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-white z-10">
-                  <div className="flex items-center justify-center gap-2 text-xs font-medium mb-3">
-                    <div className="p-1 bg-white/20 rounded">
-                      <Users className="h-3 w-3" />
-                    </div>
-                    <span>COMMUNITY</span>
-                  </div>
-                  <h1 className="text-4xl font-bold mb-2">{content.title}</h1>
-                  <p className="text-lg">{content.subtitle}</p>
-                </div>
-                <div className="absolute inset-0 bg-black/40"></div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 rounded">
-                  <Users className="h-4 w-4" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm text-muted-foreground">{realStats.memberCount} members</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 rounded">
-                  <BookOpen className="h-4 w-4" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm text-muted-foreground">$97/mo</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 rounded">
-                  <Code className="h-4 w-4" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm text-muted-foreground">By Builders</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-4">
-              <p className="text-gray-600">
-                {content.mainDescription}
-              </p>
-              
-              <div>
-                <h3 className="font-semibold mb-3">Learn how to:</h3>
-                <ul className="space-y-2">
-                  {content.learnItems.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-muted-foreground mt-0.5">{index + 1}.</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3">Here's what you get:</h3>
-                <ul className="space-y-2">
-                  {content.benefitItems.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-green-600">•</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <p className="text-gray-600">
-                {content.footerText}
-              </p>
-
-              <p className="text-sm text-muted-foreground">
-                Join below while it lasts.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Right Column - Community Badge */}
-      <aside className="hidden lg:block">
-        <Card className="overflow-hidden border-black">
-          <div className="bg-white p-6 text-black">
-            <div className="flex items-center gap-2 text-xs font-medium mb-3">
-              <div className="p-1 bg-black/10 rounded">
-                <Users className="h-3 w-3" />
-              </div>
-              <span>COMMUNITY</span>
-            </div>
-            <h2 className="text-2xl font-bold mb-1">Build What You Need</h2>
-            <p className="text-sm text-black/60 mb-4">buildwhatyouneed.com</p>
-            <p className="text-sm mb-6">
-              Learn how to build what you need without expensive SaaS. 
-              Save thousands and own your tools.
-            </p>
-            
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-black/60">✓</span>
-                <span>Code Templates</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-black/60">✓</span>
-                <span>SaaS Replacements</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-black/60">✓</span>
-                <span>Community Support</span>
-              </div>
-            </div>
-          </div>
-          
-          <CardContent className="p-6">
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 text-center mb-6">
-              <div>
-                <p className="text-2xl font-bold">{realStats.memberCount}</p>
-                <p className="text-xs text-muted-foreground">Members</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{realStats.adminCount}</p>
-                <p className="text-xs text-muted-foreground">Admins</p>
-              </div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Video Section */}
+            <Card>
+              <CardContent className="p-0">
+                <div className="relative aspect-video bg-black rounded-t-lg">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
+                      <Play className="h-10 w-10 text-white ml-1" fill="white" />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold mb-2">My name is Chris Lee.</h1>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                    <span className="flex items-center gap-1">
+                      <Lock className="h-4 w-4" />
+                      Private
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      {realStats.memberCount.toLocaleString()} members
+                    </span>
+                    <span>$119 /month</span>
+                    <span>By Chris Lee ✓</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Member Avatars */}
-            <div className="flex -space-x-2">
-              {recentMembers.map((member) => (
-                <Avatar key={member.id} className="h-8 w-8 border-2 border-background">
-                  <AvatarFallback className="text-xs bg-muted">
-                    {member.full_name ? 
-                      member.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) :
-                      member.email ? member.email[0].toUpperCase() : 
-                      <User className="h-4 w-4" />
-                    }
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </aside>
+            {/* About Section */}
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Ready to start your business and get on the path to financial freedom?</h2>
+                
+                <p className="text-gray-700 mb-4">
+                  Join Build What You Need's community of ambitious entrepreneurs.
+                </p>
+
+                <p className="text-gray-700 mb-6">Join now for instant access to:</p>
+
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <span className="text-orange-500 mt-0.5">🔥</span>
+                    <span>LIVE Virtual Events where I build real SaaS tools</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-orange-500 mt-0.5">💪</span>
+                    <span>Bootcamp to kickstart your business in 4 weeks</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-500 mt-0.5">🤝</span>
+                    <span>An inspiring community of like-minded entrepreneurs</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-orange-500 mt-0.5">⚡</span>
+                    <span>Live workshops with our team</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">✅</span>
+                    <span>BONUS: AI Prompts & Templates for building any SaaS</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">✨</span>
+                    <span>BONUS: My Top 5 Mistakes Building A Business</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500 mt-0.5">🎯</span>
+                    <span>BONUS: AI Advantage: ChatGPT Prompts for Entrepreneurs</span>
+                  </li>
+                </ul>
+
+                <p className="text-gray-700 mb-4">
+                  Inside you'll find all the support, guidance, tools, and resources you need to build a business with confidence.
+                </p>
+
+                <p className="text-gray-700">
+                  Stop dreaming. Start doing.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar - Right Side */}
+          <div className="space-y-6">
+            {/* Community Info Card */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  <div className="w-24 h-24 mx-auto bg-blue-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-3xl font-bold">B</span>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-lg">Build What You Need</h3>
+                    <p className="text-sm text-gray-600">bwyn.com/chris-lee</p>
+                  </div>
+                  
+                  <p className="text-sm text-gray-700">
+                    Start your business and get on the path to financial freedom with serial entrepreneur Chris Lee.
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-4 py-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{realStats.memberCount}</div>
+                      <div className="text-xs text-gray-600">Members</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">11</div>
+                      <div className="text-xs text-gray-600">Online</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{realStats.adminCount}</div>
+                      <div className="text-xs text-gray-600">Admins</div>
+                    </div>
+                  </div>
+                  
+                  {renderCTA()}
+                  
+                  <p className="text-xs text-gray-500">
+                    powered by <span className="font-semibold">bwyn</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      <AuthModal 
+        open={authModalOpen} 
+        onOpenChange={setAuthModalOpen}
+        mode={authMode}
+      />
     </div>
   )
 }

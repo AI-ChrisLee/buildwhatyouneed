@@ -29,18 +29,23 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Redirect auth routes to about page
+  if (['/login', '/signup'].includes(pathname)) {
+    return NextResponse.redirect(new URL('/about', request.url))
+  }
+
   // Public routes that don't require auth
-  const publicRoutes = ['/', '/join', '/login', '/signup', '/terms', '/privacy']
+  const publicRoutes = ['/', '/join', '/about', '/terms', '/privacy']
   const isPublicRoute = publicRoutes.includes(pathname)
 
   // If not logged in and trying to access protected route
   if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/about', request.url))
   }
 
   // If logged in, check subscription status for community routes
   if (user) {
-    const communityRoutes = ['/threads', '/classroom', '/calendar', '/about', '/profile']
+    const communityRoutes = ['/threads', '/classroom', '/calendar', '/profile']
     const isCommunityRoute = communityRoutes.some(route => pathname.startsWith(route))
     
     // Payment pages need auth but not subscription
@@ -63,20 +68,6 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Redirect logged-in users away from auth pages
-    if (['/login', '/signup'].includes(pathname)) {
-      // Check if they have subscription
-      const { data: subscription } = await supabase
-        .from('stripe_subscriptions')
-        .select('status')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle()
-
-      return NextResponse.redirect(
-        new URL(subscription ? '/threads' : '/payment', request.url)
-      )
-    }
   }
 
   return response
