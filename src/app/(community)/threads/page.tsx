@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { ThreadCardV2 } from "@/components/thread-card-v2"
 import { NewThreadDialog } from "@/components/new-thread-dialog"
@@ -23,7 +23,7 @@ const categories = [
 
 const THREADS_PER_PAGE = 20
 
-export default function ThreadsPage() {
+function ThreadsPageContent() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [isNewThreadOpen, setIsNewThreadOpen] = useState(false)
   const [selectedThread, setSelectedThread] = useState<ThreadWithAuthor | null>(null)
@@ -276,5 +276,20 @@ export default function ThreadsPage() {
       
         <AccessDeniedModal />
       </div>
+  )
+}
+
+export default function ThreadsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading threads...</p>
+        </div>
+      </div>
+    }>
+      <ThreadsPageContent />
+    </Suspense>
   )
 }
