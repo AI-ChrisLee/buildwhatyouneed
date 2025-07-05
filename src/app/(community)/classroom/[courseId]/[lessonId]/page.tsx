@@ -5,8 +5,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Play, ChevronLeft, ChevronRight } from "lucide-react"
-import { Course, Lesson } from "@/lib/supabase"
 import { LessonContentDisplay } from "@/components/lesson-content-display"
+
+interface Course {
+  id: string
+  title: string
+  description: string | null
+  is_free: boolean
+  order_index: number
+  created_at: string
+  updated_at: string
+}
+
+interface Lesson {
+  id: string
+  course_id: string
+  title: string
+  description: string | null
+  wistia_video_id: string | null
+  order_index: number
+  duration_minutes: number | null
+  created_at: string
+  updated_at: string
+}
 
 export default function LessonPage({
   params,

@@ -5,8 +5,17 @@ import Link from "next/link"
 import { BookOpen, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Course } from "@/lib/supabase"
 import { useMembership } from "@/hooks/use-membership"
+
+interface Course {
+  id: string
+  title: string
+  description: string | null
+  is_free: boolean
+  order_index: number
+  created_at: string
+  updated_at: string
+}
 import { CourseCard } from "@/components/course-card"
 import PaymentModal from "@/components/payment-modal"
 import {
@@ -22,7 +31,6 @@ import {
 
 interface CourseWithCount extends Course {
   lesson_count?: number
-  is_free?: boolean
 }
 
 export default function ClassroomPage() {

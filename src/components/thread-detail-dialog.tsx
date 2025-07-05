@@ -175,7 +175,7 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarFallback>
-                {thread.author?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || thread.author?.email?.[0]?.toUpperCase() || 'U'}
+                {thread.author?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || thread.author?.email?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -243,7 +243,7 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
                 // Parse content for media
                 const parts = thread.content.split(/(\!\[[^\]]*\]\([^)]+\)|\[Video Link\]\([^)]+\))/g)
                 
-                return parts.map((part, index) => {
+                return parts.map((part: string, index: number) => {
                   // Check if it's an image
                   const imageMatch = part.match(/!\[([^\]]*)\]\(([^)]+)\)/)
                   if (imageMatch) {
@@ -354,7 +354,7 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
                           <div className="flex items-start gap-3">
                             <Avatar className="h-8 w-8">
                               <AvatarFallback className="text-xs">
-                                {comment.author?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || comment.author?.email?.[0]?.toUpperCase() || 'U'}
+                                {comment.author?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || comment.author?.email?.[0]?.toUpperCase() || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">

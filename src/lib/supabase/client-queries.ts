@@ -1,5 +1,38 @@
 import { createClient } from '@/lib/supabase/client'
-import { Thread, Comment, User } from '@/lib/supabase'
+
+interface User {
+  id: string
+  email: string
+  full_name: string | null
+  is_admin: boolean
+  membership_tier: string
+  created_at: string
+  updated_at: string
+}
+
+interface Thread {
+  id: string
+  title: string
+  content: string
+  category: string
+  author_id: string
+  is_pinned: boolean
+  is_locked: boolean
+  is_deleted: boolean
+  created_at: string
+  updated_at: string
+  last_activity_at: string
+}
+
+interface Comment {
+  id: string
+  thread_id: string
+  author_id: string
+  content: string
+  is_deleted: boolean
+  created_at: string
+  updated_at: string
+}
 
 // Thread with author info
 export type ThreadWithAuthor = Thread & {

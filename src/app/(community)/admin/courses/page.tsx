@@ -6,7 +6,6 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
-import { Course } from "@/lib/supabase"
 import { Edit, Trash2, Plus, GripVertical, Eye } from "lucide-react"
 import {
   AlertDialog,
@@ -18,6 +17,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
+interface Course {
+  id: string
+  title: string
+  description: string | null
+  is_free: boolean
+  order_index: number
+  created_at: string
+  updated_at: string
+}
 
 interface CourseWithCount extends Course {
   lesson_count?: number

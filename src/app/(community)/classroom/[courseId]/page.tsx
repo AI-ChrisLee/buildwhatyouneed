@@ -4,8 +4,29 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { Course, Lesson } from "@/lib/supabase"
 import { Clock, Plus, Edit, Trash2, Lock } from "lucide-react"
+
+interface Course {
+  id: string
+  title: string
+  description: string | null
+  is_free: boolean
+  order_index: number
+  created_at: string
+  updated_at: string
+}
+
+interface Lesson {
+  id: string
+  course_id: string
+  title: string
+  description: string | null
+  wistia_video_id: string | null
+  order_index: number
+  duration_minutes: number | null
+  created_at: string
+  updated_at: string
+}
 import { createClient } from "@/lib/supabase/client"
 import PaymentModal from "@/components/payment-modal"
 import { useRouter } from "next/navigation"

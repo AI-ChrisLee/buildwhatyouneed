@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
-import { Course, Lesson } from "@/lib/supabase"
 import { ArrowLeft, Save, Plus, Edit, Trash2, GripVertical } from "lucide-react"
 import {
   AlertDialog,
@@ -21,6 +20,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
+interface Course {
+  id: string
+  title: string
+  description: string | null
+  is_free: boolean
+  order_index: number
+  created_at: string
+  updated_at: string
+}
+
+interface Lesson {
+  id: string
+  course_id: string
+  title: string
+  description: string | null
+  wistia_video_id: string | null
+  order_index: number
+  duration_minutes: number | null
+  created_at: string
+  updated_at: string
+}
 
 export default function EditCoursePage({
   params,

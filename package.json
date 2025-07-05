@@ -1,7 +1,18 @@
 {
   "name": "build-what-you-need",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "A production-ready community platform template for launching membership sites",
+  "keywords": ["nextjs", "community", "platform", "stripe", "supabase", "membership"],
+  "author": "Build What You Need",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/build-what-you-need.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/build-what-you-need/issues"
+  },
+  "homepage": "https://github.com/yourusername/build-what-you-need#readme",
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",

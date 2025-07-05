@@ -5,12 +5,20 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { BookOpen, Clock, Lock, Edit, Trash2 } from "lucide-react"
-import { Course } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
+
+interface Course {
+  id: string
+  title: string
+  description: string | null
+  is_free: boolean
+  order_index: number
+  created_at: string
+  updated_at: string
+}
 
 interface CourseWithCount extends Course {
   lesson_count?: number
-  is_free?: boolean
 }
 
 interface CourseCardProps {

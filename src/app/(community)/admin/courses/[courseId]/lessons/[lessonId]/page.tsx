@@ -9,9 +9,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
-import { Lesson } from "@/lib/supabase"
 import { ArrowLeft, Save } from "lucide-react"
 import { LessonDescriptionEditor } from "@/components/lesson-description-editor"
+
+interface Lesson {
+  id: string
+  course_id: string
+  title: string
+  description: string | null
+  wistia_video_id: string | null
+  order_index: number
+  duration_minutes: number | null
+  created_at: string
+  updated_at: string
+}
 
 export default function EditLessonPage({
   params,
