@@ -5,7 +5,26 @@ const nextConfig = {
   
   // Optimize images
   images: {
-    domains: ['localhost', 'aichrislee.com'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'aichrislee.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'buildwhatyouneed.com',
+        port: '',
+        pathname: '/**',
+      }
+    ],
     formats: ['image/avif', 'image/webp'],
   },
   
@@ -13,9 +32,14 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // Experimental features for better performance
-  experimental: {
-    optimizeCss: true,
+  // Webpack configuration to handle large cache serialization
+  webpack: (config, { isServer }) => {
+    // Optimize cache serialization for better performance
+    config.cache = {
+      type: 'filesystem',
+      compression: 'gzip',
+    };
+    return config;
   },
   
   // Headers for caching and security
