@@ -115,7 +115,7 @@ export function CommunityBadge() {
           <div>
             <h4 className="font-medium mb-1">Build What You Need by Chris</h4>
             <p className="text-sm text-muted-foreground">
-              Join entrepreneurs vibe coding with AI. Ship fast, own everything, pay nothing.
+              Real builds. Real errors. Real solutions. Own everything.
             </p>
           </div>
 
@@ -134,16 +134,16 @@ export function CommunityBadge() {
           {/* Features */}
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>Replace $1000s in SaaS costs</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+              <span className="whitespace-normal">Save $20K+ yearly on SaaS</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>Build your own tools with AI</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+              <span className="whitespace-normal">Build your first tool in 14 days</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>Weekly live office hours</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+              <span className="whitespace-normal">Access every tool I build</span>
             </div>
           </div>
         </div>

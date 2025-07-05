@@ -7,11 +7,11 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: {
-    default: "Build What You Need by Chris - Stop Paying for SaaS, Start Building",
+    default: "Build What You Need - Productize Yourself Using AI | Chris Lee",
     template: "%s | Build What You Need"
   },
-  description: "Join 1000+ entrepreneurs vibe coding with AI. Learn to build your own SaaS tools, save thousands per month, and own everything. Get free templates to replace expensive subscriptions.",
-  keywords: ["SaaS alternatives", "build your own tools", "AI coding", "no-code", "low-code", "save money on software", "entrepreneur tools", "vibe coding", "Chris Lee"],
+  description: "I'm productizing myself with AI. Building one SaaS tool per week. Every error documented. Join entrepreneurs who build tools that work exactly how THEY work. Save $20K+ yearly.",
+  keywords: ["productize yourself", "build what you need", "AI automation", "SaaS replacement", "entrepreneur tools", "build your own software", "one week one app", "Chris Lee", "save $20K SaaS"],
   authors: [{ name: "Chris Lee" }],
   creator: "Chris Lee",
   publisher: "Build What You Need",
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://buildwhatyouneed.com",
     siteName: "Build What You Need",
-    title: "Build What You Need by Chris - Stop Paying for SaaS, Start Building",
-    description: "Join 1000+ entrepreneurs vibe coding with AI. Learn to build your own SaaS tools, save thousands per month, and own everything.",
+    title: "Build What You Need - Productize Yourself Using AI",
+    description: "I'm productizing myself with AI. Building one SaaS tool per week. Every error documented. Join entrepreneurs who build instead of rent.",
     images: [
       {
         url: "/images/logo.png",
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Build What You Need by Chris",
-    description: "Join 1000+ entrepreneurs vibe coding with AI. Build your own SaaS tools and save thousands.",
+    title: "Build What You Need - Productize Yourself Using AI",
+    description: "One week, one app. Every error documented. Build tools that work exactly how YOU work. Save $20K+ yearly.",
     images: ["/images/logo.png"],
     creator: "@aichrislee",
   },

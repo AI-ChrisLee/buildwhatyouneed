@@ -36,23 +36,23 @@ function HomePageContent() {
   const content = {
     title: "Build What You Need,",
     titleSecondLine: "Nothing else.",
-    subtitle: "Join entrepreneurs vibe coding with AI. We're building our own SaaS tools instead of paying for overpriced subscriptions. Ship fast, own everything, pay nothing.",
-    mainDescription: "The days of overpriced SaaS are over.",
+    subtitle: "Join entrepreneurs who are productizing themselves with AI. Build tools that work exactly how YOU work. Ship fast, own everything, pay nothing.",
+    mainDescription: "Your business. Your tools. Your way.",
     memberCount: "2k",
     onlineCount: "8",
     adminCount: "10",
     learnItems: [
-      "Build tools that replace expensive SaaS subscriptions",
-      "Save thousands of dollars per month",
-      "Own your tools and data completely"
+      "Turn your unique workflow into automated tools",
+      "Build exactly what YOUR business needs",
+      "Skip the errors I've already solved"
     ],
     benefitItems: [
-      "Access to code templates that replace $1000s in SaaS costs",
-      "Step-by-step courses on building your own tools",
-      "Community support from experienced builders",
-      "Weekly challenges to practice your skills"
+      "My entire build process - every error, every breakthrough",
+      "Complete source code for tools that save 10+ hours/week",
+      "Direct access when you're stuck (I've been there)",
+      "Join builders creating their own software empires"
     ],
-    footerText: "Join for just $97/month. Cancel anytime."
+    footerText: "Start watching my builds free. Upgrade when you're ready to build."
   }
   const supabase = createClient()
 
@@ -461,8 +461,8 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "EducationalOrganization",
-            "name": "Build What You Need by Chris",
-            "description": "Join 1000+ entrepreneurs vibe coding with AI. Learn to build your own SaaS tools, save thousands per month, and own everything.",
+            "name": "Build What You Need",
+            "description": "I'm productizing myself with AI. Building one SaaS tool per week. Every error documented. Join entrepreneurs who build instead of rent. Save $20K+ yearly.",
             "url": "https://buildwhatyouneed.com",
             "logo": "https://buildwhatyouneed.com/images/logo.png",
             "founder": {
@@ -477,7 +477,7 @@ export default function HomePage() {
               "availability": "https://schema.org/InStock",
               "validFrom": "2025-07-04",
               "name": "Build What You Need Membership",
-              "description": "Access to code templates, courses, and community support"
+              "description": "Weekly builds, complete source code, error documentation, direct support. Build your first tool in 14 days."
             },
             "aggregateRating": {
               "@type": "AggregateRating",
