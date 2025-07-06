@@ -124,11 +124,15 @@ export default function ClassroomPage() {
         method: 'DELETE',
       })
 
-      if (response.ok) {
-        setCourses(courses.filter(c => c.id !== courseId))
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete course')
       }
+
+      setCourses(courses.filter(c => c.id !== courseId))
     } catch (error) {
       console.error('Failed to delete course:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete course')
     }
     setDeleteId(null)
   }
@@ -172,28 +176,9 @@ export default function ClassroomPage() {
   }
 
   return (
-    <MembershipGate feature="Classroom">
-      <div className="min-h-screen">
-        {/* Header */}
-        {isAdmin && (
-          <div className="border-b">
-            <div className="flex justify-end px-4 md:px-6 py-3">
-              <Button 
-                size="sm"
-                onClick={() => {
-                  setEditingCourse(null)
-                  setShowCourseModal(true)
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Course
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Main content */}
-        <div className="px-4 md:px-6 py-6">
+    <div className="min-h-screen">
+      {/* Main content */}
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6">
 
           {/* Empty state */}
           {courses.length === 0 && (
@@ -214,8 +199,8 @@ export default function ClassroomPage() {
             </div>
           )}
 
-          {/* Course Grid - 3 columns like Skool */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Course Grid - Single column */}
+          <div className="space-y-6">
             {courses.map((course) => (
               <CourseCard
                 key={course.id}
@@ -228,6 +213,20 @@ export default function ClassroomPage() {
                 }}
               />
             ))}
+            
+            {/* Add Course Link */}
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setEditingCourse(null)
+                  setShowCourseModal(true)
+                }}
+                className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+                <span>New course</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -280,6 +279,6 @@ export default function ClassroomPage() {
         
         <AccessDeniedModal />
       </div>
-    </MembershipGate>
+    </div>
   )
 }

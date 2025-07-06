@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/client"
 import { Calendar, Clock, Video, ExternalLink } from "lucide-react"
 import { format, addDays, startOfWeek, isSameDay } from "date-fns"
-import { useMembership } from "@/hooks/use-membership"
 
 interface OfficeHour {
   id: string
@@ -22,7 +21,6 @@ export default function CalendarPage() {
   const [officeHours, setOfficeHours] = useState<OfficeHour[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
-  const { MembershipGate, AccessDeniedModal } = useMembership()
 
   useEffect(() => {
     fetchOfficeHours()
@@ -57,10 +55,9 @@ export default function CalendarPage() {
   }
 
   return (
-    <MembershipGate feature="Calendar">
-      <div className="min-h-screen">
-        {/* Main content */}
-        <div className="px-4 md:px-6 py-6 space-y-6">
+    <div className="min-h-screen">
+      {/* Main content */}
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-6">
 
           {/* Fixed Schedule */}
           <div>
@@ -231,10 +228,7 @@ export default function CalendarPage() {
               </p>
             </div>
           </div>
-        </div>
-        
-        <AccessDeniedModal />
       </div>
-    </MembershipGate>
+    </div>
   )
 }

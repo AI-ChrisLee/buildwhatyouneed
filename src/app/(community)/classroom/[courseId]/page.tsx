@@ -292,7 +292,11 @@ export default function CourseDetailPage() {
       .delete()
       .eq('id', lessonId)
 
-    if (!error) {
+    if (error) {
+      console.error('Error deleting lesson:', error)
+      alert(`Failed to delete lesson: ${error.message}`)
+      return
+    }
       // Get remaining lessons in the same module
       const remainingLessons = lessons
         .filter(l => l.id !== lessonId && l.module_id === lessonToDelete.module_id)
@@ -330,6 +334,31 @@ export default function CourseDetailPage() {
       if (editingLesson === lessonId) {
         setEditingLesson(null)
       }
+  }
+
+  async function handleDeleteModule(moduleId: string) {
+    const module = modules.find(m => m.id === moduleId)
+    if (!module) return
+
+    // Check if module has lessons
+    const moduleLessons = lessons.filter(l => l.module_id === moduleId)
+    if (moduleLessons.length > 0) {
+      alert("Cannot delete folder with pages. Please move or delete all pages first.")
+      return
+    }
+
+    if (!confirm(`Are you sure you want to delete the folder "${module.title}"?`)) return
+
+    const { error } = await supabase
+      .from('course_modules')
+      .delete()
+      .eq('id', moduleId)
+
+    if (error) {
+      console.error('Error deleting module:', error)
+      alert(`Failed to delete folder: ${error.message}`)
+    } else {
+      setModules(modules.filter(m => m.id !== moduleId))
     }
   }
 
@@ -374,7 +403,10 @@ export default function CourseDetailPage() {
       .delete()
       .eq('id', courseId)
 
-    if (!error) {
+    if (error) {
+      console.error('Error deleting course:', error)
+      alert(`Failed to delete course: ${error.message}`)
+    } else {
       router.push('/classroom')
     }
   }
@@ -655,6 +687,13 @@ export default function CourseDetailPage() {
                         <DropdownMenuItem onClick={() => handleAddLesson(module.id)}>
                           <FileText className="h-4 w-4 mr-2" />
                           Add page to folder
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteModule(module.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete folder
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
