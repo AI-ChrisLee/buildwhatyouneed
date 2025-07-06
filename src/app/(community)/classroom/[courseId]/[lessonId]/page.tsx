@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Play, ChevronLeft, ChevronRight } from "lucide-react"
-import { LessonContentDisplay } from "@/components/lesson-content-display"
+import { RichTextDisplay } from "@/components/rich-text-display"
 
 interface Course {
   id: string
@@ -22,6 +22,7 @@ interface Lesson {
   course_id: string
   title: string
   description: string | null
+  content: string | null
   wistia_video_id: string | null
   order_index: number
   duration_minutes: number | null
@@ -173,7 +174,13 @@ export default function LessonPage({
       </div>
 
       {/* Lesson Content */}
-      <LessonContentDisplay description={currentLesson.description} />
+      {currentLesson.content && (
+        <Card>
+          <CardContent className="pt-6">
+            <RichTextDisplay content={currentLesson.content} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

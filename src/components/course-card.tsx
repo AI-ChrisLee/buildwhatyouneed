@@ -13,6 +13,8 @@ interface Course {
   description: string | null
   is_free: boolean
   order_index: number
+  cover_image_url?: string | null
+  is_draft?: boolean
   created_at: string
   updated_at: string
 }
@@ -48,24 +50,37 @@ export function CourseCard({
 
   const content = (
     <div className={cn(
-      "relative group overflow-hidden rounded-lg border bg-card transition-all duration-200",
-      isLocked ? "hover:shadow-md" : "hover:bg-muted/50",
-      "cursor-pointer"
+      "relative group overflow-hidden rounded-lg bg-card transition-all duration-200",
+      isLocked ? "hover:shadow-lg" : "hover:shadow-lg hover:-translate-y-1",
+      "cursor-pointer shadow-sm"
     )}>
       {/* Course Image */}
-      <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <BookOpen className="h-10 w-10 text-slate-500" />
-        </div>
+      <div className="aspect-[1460/752] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+        {course.cover_image_url ? (
+          <img 
+            src={course.cover_image_url} 
+            alt={course.title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+            <BookOpen className="h-12 w-12 text-gray-400" />
+          </div>
+        )}
         
-        {/* FREE Badge */}
-        {isFree && (
-          <div className="absolute top-3 left-3">
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          {course.is_draft && (
+            <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-200">
+              Draft
+            </Badge>
+          )}
+          {isFree && (
             <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
               FREE
             </Badge>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Lock Overlay for Premium Content */}
         {isLocked && (
@@ -106,35 +121,34 @@ export function CourseCard({
         )}
       </div>
       
-      <div className="p-4 md:p-5 space-y-3">
+      <div className="p-4 space-y-3">
         {/* Title */}
-        <h3 className="font-medium text-base md:text-lg line-clamp-1">
+        <h3 className="font-semibold text-lg line-clamp-1">
           {course.title}
         </h3>
         
-        {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {course.description}
-        </p>
-        
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{course.lesson_count || 0} lessons</span>
-          </div>
-          
-          {isLocked && (
-            <Button 
-              size="sm" 
-              variant="outline"
-              className="h-7 text-xs"
-              onClick={handleClick}
-            >
-              Upgrade to Access
-            </Button>
-          )}
+        {/* Progress Bar - placeholder for now */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="bg-green-500 h-2 rounded-full" style={{ width: '0%' }}></div>
         </div>
+        
+        <p className="text-xs text-muted-foreground">0% complete</p>
+        
+        {/* Open Button */}
+        <Button 
+          variant="outline" 
+          className="w-full"
+          disabled={isLocked}
+        >
+          {isLocked ? (
+            <>
+              <Lock className="h-4 w-4 mr-2" />
+              Locked
+            </>
+          ) : (
+            'OPEN'
+          )}
+        </Button>
       </div>
     </div>
   )

@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { ArrowLeft, Save } from "lucide-react"
-import { LessonDescriptionEditor } from "@/components/lesson-description-editor"
+import { RichTextEditor } from "@/components/rich-text-editor"
 
 interface Lesson {
   id: string
   course_id: string
   title: string
   description: string | null
+  content: string | null
   wistia_video_id: string | null
   order_index: number
   duration_minutes: number | null
@@ -37,6 +38,7 @@ export default function EditLessonPage({
   // Form fields
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [content, setContent] = useState("")
   const [wistiaVideoId, setWistiaVideoId] = useState("")
   const [orderIndex, setOrderIndex] = useState(1)
   const [durationMinutes, setDurationMinutes] = useState<number | null>(null)
@@ -81,6 +83,7 @@ export default function EditLessonPage({
       setLesson(data)
       setTitle(data.title)
       setDescription(data.description || "")
+      setContent(data.content || "")
       setWistiaVideoId(data.wistia_video_id)
       setOrderIndex(data.order_index)
       setDurationMinutes(data.duration_minutes || null)
@@ -98,6 +101,7 @@ export default function EditLessonPage({
       const lessonData = {
         title,
         description,
+        content,
         wistia_video_id: wistiaVideoId,
         order_index: orderIndex,
         duration_minutes: durationMinutes,
@@ -173,10 +177,11 @@ export default function EditLessonPage({
           </div>
 
           <div className="space-y-2">
-            <Label>Lesson Content & Resources</Label>
-            <LessonDescriptionEditor
-              value={description}
-              onChange={setDescription}
+            <Label>Lesson Content</Label>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Write your lesson content here..."
             />
           </div>
 

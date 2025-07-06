@@ -1,33 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-// GET /api/lessons/[id] - Get single lesson
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const supabase = createClient()
-  
-  const { data: lesson, error } = await supabase
-    .from('lessons')
-    .select('*')
-    .eq('id', params.id)
-    .single()
-
-  if (error || !lesson) {
-    return NextResponse.json(
-      { error: 'Lesson not found' },
-      { status: 404 }
-    )
-  }
-
-  return NextResponse.json({ data: lesson })
-}
-
-// PUT /api/lessons/[id] - Update lesson
+// PUT /api/modules/[moduleId] - Update module
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { moduleId: string } }
 ) {
   const supabase = createClient()
   
@@ -53,21 +30,18 @@ export async function PUT(
     )
   }
 
-  // Update lesson
+  // Update module
   const body = await request.json()
-  const { title, description, content, wistia_video_id, order_index, duration_minutes } = body
+  const { title, order_index, is_collapsed } = body
 
-  const { data: lesson, error } = await supabase
-    .from('lessons')
+  const { data: module, error } = await supabase
+    .from('course_modules')
     .update({
       title,
-      description,
-      content,
-      wistia_video_id,
       order_index,
-      duration_minutes,
+      is_collapsed,
     })
-    .eq('id', params.id)
+    .eq('id', params.moduleId)
     .select()
     .single()
 
@@ -78,13 +52,13 @@ export async function PUT(
     )
   }
 
-  return NextResponse.json({ data: lesson })
+  return NextResponse.json({ data: module })
 }
 
-// DELETE /api/lessons/[id] - Delete lesson
+// DELETE /api/modules/[moduleId] - Delete module
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { moduleId: string } }
 ) {
   const supabase = createClient()
   
@@ -110,11 +84,11 @@ export async function DELETE(
     )
   }
 
-  // Delete lesson
+  // Delete module
   const { error } = await supabase
-    .from('lessons')
+    .from('course_modules')
     .delete()
-    .eq('id', params.id)
+    .eq('id', params.moduleId)
 
   if (error) {
     return NextResponse.json(

@@ -29,13 +29,14 @@ export async function POST(request: Request) {
 
   // Create lesson
   const body = await request.json()
-  const { title, description, wistia_video_id, order_index, duration_minutes, course_id } = body
+  const { title, description, content, wistia_video_id, order_index, duration_minutes, course_id } = body
 
   const { data: lesson, error } = await supabase
     .from('lessons')
     .insert({
       title,
       description,
+      content,
       wistia_video_id,
       order_index: order_index || 1,
       duration_minutes,

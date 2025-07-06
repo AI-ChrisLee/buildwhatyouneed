@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { checkCourseAccess } from '@/lib/course-access'
 
 // GET /api/courses/[id] - Get single course
 export async function GET(
@@ -8,24 +7,6 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const supabase = createClient()
-  
-  // Get authenticated user
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
-  }
-  
-  // Check course access
-  const access = await checkCourseAccess(user.id, params.id)
-  if (!access.hasAccess) {
-    return NextResponse.json(
-      { error: access.requiresUpgrade ? 'Upgrade required' : 'Access denied' },
-      { status: 403 }
-    )
-  }
   
   const { data: course, error } = await supabase
     .from('courses')
@@ -74,13 +55,16 @@ export async function PUT(
 
   // Update course
   const body = await request.json()
-  const { title, description, order_index } = body
+  const { title, description, is_free, is_draft, cover_image_url, order_index } = body
 
   const { data: course, error } = await supabase
     .from('courses')
     .update({
       title,
       description,
+      is_free,
+      is_draft,
+      cover_image_url,
       order_index,
     })
     .eq('id', params.id)
@@ -126,7 +110,7 @@ export async function DELETE(
     )
   }
 
-  // Delete course (lessons will cascade delete)
+  // Delete course (will cascade delete lessons)
   const { error } = await supabase
     .from('courses')
     .delete()

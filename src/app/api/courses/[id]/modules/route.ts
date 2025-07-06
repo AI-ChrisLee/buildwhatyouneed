@@ -1,18 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-// GET /api/courses - List all courses
-export async function GET() {
+// GET /api/courses/[courseId]/modules - Get all modules for a course
+export async function GET(
+  request: Request,
+  { params }: { params: { courseId: string } }
+) {
   const supabase = createClient()
   
-  const { data: courses, error } = await supabase
-    .from('courses')
+  const { data: modules, error } = await supabase
+    .from('course_modules')
     .select(`
       *,
-      lessons(count)
+      lessons:lessons(*)
     `)
-    .order('is_free', { ascending: false })
+    .eq('course_id', params.courseId)
     .order('order_index', { ascending: true })
+    .order('order_index', { foreignTable: 'lessons', ascending: true })
 
   if (error) {
     return NextResponse.json(
@@ -21,19 +25,14 @@ export async function GET() {
     )
   }
 
-  // Transform data to include lesson count
-  const coursesWithCount = courses?.map(course => ({
-    ...course,
-    lesson_count: course.lessons[0]?.count || 0
-  })) || []
-
-  return NextResponse.json({
-    data: coursesWithCount
-  })
+  return NextResponse.json({ data: modules })
 }
 
-// POST /api/courses - Create new course
-export async function POST(request: Request) {
+// POST /api/courses/[courseId]/modules - Create new module
+export async function POST(
+  request: Request,
+  { params }: { params: { courseId: string } }
+) {
   const supabase = createClient()
   
   // Check if user is admin
@@ -58,19 +57,16 @@ export async function POST(request: Request) {
     )
   }
 
-  // Create course
+  // Create module
   const body = await request.json()
-  const { title, description, is_free, is_draft, cover_image_url, order_index } = body
+  const { title, order_index } = body
 
-  const { data: course, error } = await supabase
-    .from('courses')
+  const { data: module, error } = await supabase
+    .from('course_modules')
     .insert({
+      course_id: params.courseId,
       title,
-      description,
-      is_free: is_free ?? false,
-      is_draft: is_draft ?? true,
-      cover_image_url,
-      order_index: order_index || 1,
+      order_index: order_index || 0,
     })
     .select()
     .single()
@@ -82,5 +78,5 @@ export async function POST(request: Request) {
     )
   }
 
-  return NextResponse.json({ data: course })
+  return NextResponse.json({ data: module })
 }

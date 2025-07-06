@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { Edit, Trash2, Plus, GripVertical, Eye } from "lucide-react"
+import { CourseModal } from "@/components/course-modal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,8 @@ interface Course {
   description: string | null
   is_free: boolean
   order_index: number
+  cover_image_url?: string | null
+  is_draft?: boolean
   created_at: string
   updated_at: string
 }
@@ -37,6 +40,8 @@ export default function AdminCoursesPage() {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [showCourseModal, setShowCourseModal] = useState(false)
+  const [editingCourse, setEditingCourse] = useState<CourseWithCount | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -92,6 +97,36 @@ export default function AdminCoursesPage() {
     setDeleteId(null)
   }
 
+  async function handleSaveCourse(courseData: Partial<Course>) {
+    try {
+      if (editingCourse) {
+        // Update existing course
+        const response = await fetch(`/api/courses/${editingCourse.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(courseData),
+        })
+        
+        if (response.ok) {
+          await checkAdminAndFetchCourses()
+        }
+      } else {
+        // Create new course
+        const response = await fetch('/api/courses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(courseData),
+        })
+        
+        if (response.ok) {
+          await checkAdminAndFetchCourses()
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save course:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -108,11 +143,14 @@ export default function AdminCoursesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Course Management</h1>
-        <Button asChild>
-          <Link href="/admin/courses/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Course
-          </Link>
+        <Button 
+          onClick={() => {
+            setEditingCourse(null)
+            setShowCourseModal(true)
+          }}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Course
         </Button>
       </div>
 
@@ -143,11 +181,12 @@ export default function AdminCoursesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    asChild
+                    onClick={() => {
+                      setEditingCourse(course)
+                      setShowCourseModal(true)
+                    }}
                   >
-                    <Link href={`/admin/courses/${course.id}`}>
-                      <Edit className="h-4 w-4" />
-                    </Link>
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="outline"
@@ -203,6 +242,18 @@ export default function AdminCoursesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CourseModal
+        open={showCourseModal}
+        onOpenChange={(open) => {
+          setShowCourseModal(open)
+          if (!open) {
+            setEditingCourse(null)
+          }
+        }}
+        course={editingCourse}
+        onSave={handleSaveCourse}
+      />
     </div>
   )
 }
