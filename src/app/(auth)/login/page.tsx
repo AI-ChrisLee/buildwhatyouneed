@@ -70,10 +70,13 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center gap-2 mb-8">
-            <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">B</span>
-            </div>
-            <span className="font-semibold text-xl">Build What You Need</span>
+            <div 
+              className="h-10 w-10 rounded-full"
+              style={{
+                background: 'radial-gradient(circle at center, #F87171 0%, #EF4444 25%, #DC2626 50%, #B91C1C 75%, #7F1D1D 100%)'
+              }}
+            />
+            <span className="font-semibold text-xl">The SaaS Genocide</span>
           </Link>
         </div>
 

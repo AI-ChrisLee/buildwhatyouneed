@@ -1,22 +1,23 @@
 {
-  "name": "Build What You Need - Productize Yourself Using AI",
-  "short_name": "Build What You Need",
-  "description": "One week, one app. Every error documented. Build tools that work exactly how YOU work. Save $20K+ yearly.",
+  "name": "The SaaS Genocide",
+  "short_name": "SaaS Genocide",
+  "description": "Join The SaaS Genocide. We're ending SaaS subscriptions forever. Learn vibe coding. Build in hours. Save $20K+/year.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#000000",
+  "theme_color": "#DC2626",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/images/logo.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/logo-clean.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
-      "src": "/images/logo.png",
+      "src": "/logo.svg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
   ]
 }

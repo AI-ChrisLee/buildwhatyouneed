@@ -7,14 +7,14 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: {
-    default: "Build What You Need - Productize Yourself Using AI | Chris Lee",
-    template: "%s | Build What You Need"
+    default: "Build What You Need With Vibe Coding - The SaaS Genocide",
+    template: "%s | The SaaS Genocide"
   },
-  description: "I'm productizing myself with AI. Building one SaaS tool per week. Every error documented. Join entrepreneurs who build tools that work exactly how THEY work. Save $20K+ yearly.",
-  keywords: ["productize yourself", "build what you need", "AI automation", "SaaS replacement", "entrepreneur tools", "build your own software", "one week one app", "Chris Lee", "save $20K SaaS"],
-  authors: [{ name: "Chris Lee" }],
-  creator: "Chris Lee",
-  publisher: "Build What You Need",
+  description: "Build what you need with vibe coding. We're ending SaaS subscriptions forever. Kill your first bill in 14 days using AI. Join The SaaS Genocide.",
+  keywords: ["SaaS genocide", "vibe coding", "kill SaaS subscriptions", "build don't rent", "SaaS replacement", "software sovereignty", "cancel SaaS", "build what you need", "no code movement", "AI development"],
+  authors: [{ name: "The SaaS Genocide" }],
+  creator: "The SaaS Genocide",
+  publisher: "The SaaS Genocide",
   robots: {
     index: true,
     follow: true,
@@ -27,33 +27,33 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/images/logo.png",
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.ico",
+    apple: "/logo-toggle.svg",
   },
   manifest: "/manifest.json",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://buildwhatyouneed.com",
-    siteName: "Build What You Need",
-    title: "Build What You Need - Productize Yourself Using AI",
-    description: "I'm productizing myself with AI. Building one SaaS tool per week. Every error documented. Join entrepreneurs who build instead of rent.",
+    siteName: "The SaaS Genocide",
+    title: "Build What You Need With Vibe Coding - The SaaS Genocide",
+    description: "Build what you need with vibe coding. We're ending SaaS subscriptions forever. Kill your first bill in 14 days.",
     images: [
       {
-        url: "/images/logo.png",
+        url: "/logo-toggle.svg",
         width: 1200,
         height: 630,
-        alt: "Build What You Need by Chris",
+        alt: "The SaaS Genocide Movement",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Build What You Need - Productize Yourself Using AI",
-    description: "One week, one app. Every error documented. Build tools that work exactly how YOU work. Save $20K+ yearly.",
-    images: ["/images/logo.png"],
-    creator: "@aichrislee",
+    title: "The SaaS Genocide - Kill Your SaaS Bills",
+    description: "Learn vibe coding. Build in hours. Join 2k+ builders. $0/month forever.",
+    images: ["/logo-toggle.svg"],
+    creator: "@saasgenocide",
   },
   alternates: {
     canonical: "https://buildwhatyouneed.com",

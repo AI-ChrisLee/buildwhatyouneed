@@ -34,25 +34,31 @@ function HomePageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const content = {
-    title: "Build What You Need,",
-    titleSecondLine: "Nothing else.",
-    subtitle: "Join entrepreneurs who are productizing themselves with AI. Build tools that work exactly how YOU work. Ship fast, own everything, pay nothing.",
-    mainDescription: "Your business. Your tools. Your way.",
+    title: "Build What You Need",
+    titleSecondLine: "With Vibe Coding",
+    subtitle: "Join The SaaS Genocide. Own your tools instead of renting them.",
+    personalMission: "Join The SaaS Genocide. Own your tools instead of renting them.",
+    mainDescription: "A community of builders using vibe coding to replace every SaaS subscription.",
     memberCount: "2k",
     onlineCount: "8",
     adminCount: "10",
+    myStats: {
+      killed: 23,
+      saved: "$2,847/month",
+      communityTotal: 312
+    },
     learnItems: [
-      "Turn your unique workflow into automated tools",
-      "Build exactly what YOUR business needs",
-      "Skip the errors I've already solved"
+      "Why we're ending the SaaS subscription model forever",
+      "How vibe coding lets anyone build in hours, not months",
+      "What we've built: 312 SaaS replacements and counting"
     ],
     benefitItems: [
-      "My entire build process - every error, every breakthrough",
-      "Complete source code for tools that save 10+ hours/week",
-      "Direct access when you're stuck (I've been there)",
-      "Join builders creating their own software empires"
+      "Weekly live builds - watch entrepreneurs kill their subscriptions",
+      "The 4 Step Vibe Blueprint Course - our proven replacement blueprint",
+      "Ready to use templates from every community build",
+      "Every week we kill a SaaS company"
     ],
-    footerText: "Start watching my builds free. Upgrade when you're ready to build."
+    footerText: "Watch our first execution free. Join the revolution when you're ready."
   }
   const supabase = createClient()
 
@@ -189,7 +195,7 @@ function HomePageContent() {
       )}
 
       {/* Main content */}
-      <div className="max-w-[1080px] mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-[1080px] mx-auto px-4 md:px-6 py-8 md:py-12">
         <div className="flex gap-6">
           <div className="flex-1 min-w-0">
         {/* Success message after payment */}
@@ -207,11 +213,11 @@ function HomePageContent() {
               {/* Title and Subtitle */}
               <div className="space-y-3">
                 <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-                  {content.title}<br />
+                  {content.title} <br className="hidden md:block" />
                   {content.titleSecondLine}
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-3xl">
-                  {content.subtitle}
+                  Join The SaaS Genocide. <span className="font-semibold text-foreground">Own your tools instead of renting them.</span>
                 </p>
               </div>
 
@@ -281,23 +287,19 @@ function HomePageContent() {
               </div>
             </div>
 
-            {/* Stats */}
+            {/* Stats - Only 4 key items */}
             <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                <span>Private</span>
+                <span className="text-red-600">☠️</span>
+                <span className="font-semibold">{content.myStats.communityTotal} SaaS killed</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span className="font-semibold">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || '2.1k'} members</span>
+                <span className="font-semibold">{realStats.memberCount || 312} builders</span>
               </div>
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
-                <span className="font-semibold">$97/month</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-                <span>By AI Chris Lee ⭐</span>
+                <span className="font-semibold">$20K+ saved/year</span>
               </div>
             </div>
 
@@ -327,41 +329,133 @@ function HomePageContent() {
               </div>
             )}
 
-            {/* Description */}
-            <div className="space-y-6 text-base leading-relaxed">
-              <p className="font-medium">
-                {content.mainDescription}
-              </p>
-              
+            {/* Description - Blog Style */}
+            <div className="space-y-8 text-base leading-relaxed">
+              {/* The Problem */}
               <div className="space-y-4">
-                <p>Learn how to:</p>
-                <div className="pl-4 space-y-2">
-                  {content.learnItems.map((item, index) => (
-                    <div key={index} className="flex gap-3">
-                      <span className="text-muted-foreground">{index + 1}</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <p>Here's what you get:</p>
-                <div className="pl-4 space-y-2">
-                  {content.benefitItems.map((item, index) => (
-                    <div key={index} className="flex gap-3">
-                      <span className="text-muted-foreground">•</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-6">
+                <h2 className="text-2xl font-bold">You own nothing.</h2>
                 <p>
-                  {user && subscriptionStatus === 'active' 
-                    ? content.footerText 
-                    : "Start with our free course and upgrade anytime."}
+                  Every month, you send <strong>$3,000+</strong> to SaaS companies. They <strong>raise prices</strong> whenever they want. 
+                  They <strong>shut down features</strong> you depend on. They hold <strong>your data hostage</strong>.
+                </p>
+                <p>
+                  When you need a simple feature, they tell you <strong>"maybe next quarter."</strong> Your business 
+                  <strong> suffers while you wait</strong> for permission to grow. Meanwhile, your monthly payments 
+                  fund <strong>their next yacht</strong>.
+                </p>
+              </div>
+
+              {/* Our Tool Stack */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Our weapons of mass construction.</h2>
+                <p>
+                  We use the <strong>exact same tools</strong> that million-dollar startups use. But instead of 
+                  building products to sell, we build tools to <strong>own forever</strong>.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">🤖</div>
+                    <p className="font-semibold">Claude</p>
+                    <p className="text-xs text-muted-foreground">AI pair programmer</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">⚡</div>
+                    <p className="font-semibold">Cursor</p>
+                    <p className="text-xs text-muted-foreground">AI-powered editor</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">🗄️</div>
+                    <p className="font-semibold">Supabase</p>
+                    <p className="text-xs text-muted-foreground">Database & auth</p>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">🚀</div>
+                    <p className="font-semibold">Vercel</p>
+                    <p className="text-xs text-muted-foreground">Instant deployment</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Total cost: <strong>$0-200/month</strong>. Build unlimited tools. Deploy unlimited times. 
+                  <strong>Own everything forever.</strong>
+                </p>
+              </div>
+
+              {/* The Revelation */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Every SaaS company is afraid of one thing.</h2>
+                <p>
+                  That you'll discover how <strong>easy it is to build</strong> their tools yourself. With AI and 
+                  vibe coding, you can replace any SaaS in <strong>hours, not months</strong>. <strong>No coding experience needed</strong>.
+                </p>
+                  <p>
+                  We will kill <strong>312 SaaS subscriptions</strong>. Calendly, Typeform, Linktree - all 
+                  replaced with <strong>better versions we actually own</strong>. Total time to build each one? 
+                  <strong>Less than a day</strong>.
+                </p>
+              </div>
+
+              {/* The Movement */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Join The SaaS Genocide.</h2>
+                <p>
+                  Every week, our community picks a SaaS to execute. Chris builds it live while 
+                  hundreds follow along. <strong>You get the code. You own it forever. You save thousands.</strong>
+                </p>
+                <div className="bg-gray-50 border-l-4 border-gray-900 p-4 my-6">
+                  <p className="font-semibold mb-2">The 4 Step Vibe Blueprint:</p>
+                  <ol className="space-y-2 text-sm">
+                    <li>1. <strong>Target:</strong> Pick your most expensive SaaS</li>
+                    <li>2. <strong>Clone:</strong> Build the core features with AI</li>
+                    <li>3. <strong>Improve:</strong> Add the features they refused to build</li>
+                    <li>4. <strong>Liberate:</strong> Export your data and cancel forever</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* What You Get */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Here's exactly what you get:</h2>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <span className="text-2xl">📚</span>
+                    <div>
+                      <p className="font-semibold">The 4 Step Vibe Blueprint Course</p>
+                      <p className="text-sm text-muted-foreground">4 modules teaching our exact process. From zero to deployed in 14 days.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-2xl">🎯</span>
+                    <div>
+                      <p className="font-semibold">Weekly Live Executions</p>
+                      <p className="text-sm text-muted-foreground">Every Thursday 2pm EST. Watch Chris kill a $200+ SaaS tool live.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-2xl">💾</span>
+                    <div>
+                      <p className="font-semibold">Ready-to-Deploy Templates</p>
+                      <p className="text-sm text-muted-foreground">Every tool replacement. One-click deploy. Full source code.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-2xl">⚔️</span>
+                    <div>
+                      <p className="font-semibold">24/7 War Room Access</p>
+                      <p className="text-sm text-muted-foreground">Get help from 300+ builders who've already killed their SaaS.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* The Offer */}
+              <div className="space-y-4 border-t pt-8">
+                <h2 className="text-2xl font-bold">Start free. Kill your first SaaS in 14 days.</h2>
+                <p>
+                  Get instant access to <strong>Module 1 of the 4 Step Vibe Blueprint</strong>. Learn target selection. 
+                  Pick your victim. Join our next <strong>live execution</strong>.
+                </p>
+                <p className="font-semibold">
+                  Then upgrade for $97/month - less than ONE SaaS subscription you'll kill.
                 </p>
                 {user && subscriptionStatus === 'active' ? (
                   <Button 
@@ -369,7 +463,7 @@ function HomePageContent() {
                     size="lg" 
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium"
                   >
-                    View Community
+                    Enter The Movement
                   </Button>
                 ) : user ? (
                   // Logged in but no subscription
@@ -380,7 +474,7 @@ function HomePageContent() {
                       className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium"
                       disabled={checkingPayment}
                     >
-                      {checkingPayment ? 'Loading...' : 'Access Free Course'}
+                      {checkingPayment ? 'Loading...' : 'Start Building Now'}
                     </Button>
                     <Button 
                       onClick={handleJoinClick} 
@@ -389,7 +483,7 @@ function HomePageContent() {
                       className="w-full border-gray-900 text-gray-900 hover:bg-gray-100 h-14 text-base font-medium"
                       disabled={checkingPayment}
                     >
-                      Upgrade Now
+                      Join The Movement
                     </Button>
                   </div>
                 ) : (
@@ -400,13 +494,13 @@ function HomePageContent() {
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
                     disabled={checkingPayment}
                   >
-                    {checkingPayment ? 'Loading...' : 'Get Free Template'}
+                    {checkingPayment ? 'Loading...' : 'Start Building Now'}
                   </Button>
                 )}
                 <p className="text-sm text-muted-foreground text-center">
                   {user && subscriptionStatus === 'active' 
-                    ? "Join while it lasts." 
-                    : "No credit card required for free access"}
+                    ? "Your next execution awaits." 
+                    : "No credit card required. Cancel anytime."}
                 </p>
               </div>
             </div>
@@ -460,15 +554,16 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "EducationalOrganization",
-            "name": "Build What You Need",
-            "description": "I'm productizing myself with AI. Building one SaaS tool per week. Every error documented. Join entrepreneurs who build instead of rent. Save $20K+ yearly.",
+            "@type": "Organization",
+            "name": "The SaaS Genocide",
+            "description": "Ending SaaS subscriptions forever. We teach vibe coding to build tools in hours, not months. 312+ SaaS killed. Join 2k+ builders.",
             "url": "https://buildwhatyouneed.com",
-            "logo": "https://buildwhatyouneed.com/images/logo.png",
+            "logo": "https://buildwhatyouneed.com/logo-toggle.svg",
             "founder": {
-              "@type": "Person",
-              "name": "Chris Lee",
-              "url": "https://buildwhatyouneed.com"
+              "@type": "Organization",
+              "name": "The SaaS Genocide",
+              "url": "https://buildwhatyouneed.com",
+              "description": "Community of builders replacing SaaS with vibe coding."
             },
             "offers": {
               "@type": "Offer",
@@ -476,13 +571,15 @@ export default function HomePage() {
               "priceCurrency": "USD",
               "availability": "https://schema.org/InStock",
               "validFrom": "2025-07-04",
-              "name": "Build What You Need Membership",
-              "description": "Weekly builds, complete source code, error documentation, direct support. Build your first tool in 14 days."
+              "name": "The SaaS Genocide Community",
+              "description": "Learn vibe coding. Watch weekly builds. Get complete source code. The 4 Step Vibe Blueprint. Join 2k+ builders. Replace your first SaaS in 14 days."
             },
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "4.9",
-              "reviewCount": "127"
+              "reviewCount": "312",
+              "bestRating": "5",
+              "worstRating": "1"
             }
           })
         }}

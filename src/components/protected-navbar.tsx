@@ -104,16 +104,13 @@ export function ProtectedNavBar() {
           <div className="flex h-14 items-center gap-2 md:gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <Image
-                src="/images/logo.png"
-                alt="AI Chris Lee Logo"
-                width={32}
-                height={32}
-                className="rounded-full"
-                priority
-                quality={90}
-              />
-              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">AI Chris Lee</span>
+              <svg width="48" height="24" viewBox="0 0 64 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-6">
+                {/* Toggle background */}
+                <rect x="0" y="0" width="64" height="32" rx="16" fill="currentColor" className="text-black dark:text-white"/>
+                {/* Toggle circle (left position - "off" state) */}
+                <circle cx="16" cy="16" r="12" fill="white" className="dark:fill-black"/>
+              </svg>
+              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">The SaaS Genocide</span>
             </Link>
 
             {/* Navigation - Desktop */}
@@ -206,7 +203,7 @@ export function ProtectedNavBar() {
       <SignupModal 
         open={showSignupModal} 
         onOpenChange={setShowSignupModal}
-        communityName="Build What You Need"
+        communityName="The SaaS Genocide"
         onLoginClick={() => {
           setShowSignupModal(false)
           setShowLoginModal(true)

@@ -78,14 +78,14 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
       <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden">
         <DialogTitle className="sr-only">Log in to your account</DialogTitle>
         <DialogDescription className="sr-only">
-          Log in to Build What You Need
+          Log in to The SaaS Genocide
         </DialogDescription>
         <div className="p-8">
 
           {/* Form */}
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-semibold">Log in to Build What You Need</h2>
+              <h2 className="text-xl font-semibold">Log in to The SaaS Genocide</h2>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">

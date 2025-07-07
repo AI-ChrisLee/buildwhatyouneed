@@ -104,18 +104,15 @@ export function CommunityBadge() {
   return (
     <Card className="overflow-hidden">
       <div className="p-6 pb-0">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-lg">Community</h3>
-          <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-primary" />
-          </div>
+        <div className="mb-4">
+          <h3 className="font-semibold text-lg">The Community</h3>
         </div>
         
         <div className="space-y-4">
           <div>
-            <h4 className="font-medium mb-1">Build What You Need by Chris</h4>
+            <h4 className="font-medium mb-1">The SaaS Genocide by Chris</h4>
             <p className="text-sm text-muted-foreground">
-              Real builds. Real errors. Real solutions. Own everything.
+              A community using vibe coding to end SaaS subscriptions forever.
             </p>
           </div>
 
@@ -123,7 +120,7 @@ export function CommunityBadge() {
           <div className="flex gap-6">
             <div>
               <p className="text-2xl font-semibold">{loading ? '...' : memberCount}</p>
-              <p className="text-xs text-muted-foreground">Builders</p>
+              <p className="text-xs text-muted-foreground">Assassins</p>
             </div>
             <div>
               <p className="text-2xl font-semibold">$97</p>
@@ -134,16 +131,16 @@ export function CommunityBadge() {
           {/* Features */}
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-              <span className="whitespace-normal">Save $20K+ yearly on SaaS</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
+              <span className="whitespace-normal">Kill your first SaaS in 14 days</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-              <span className="whitespace-normal">Build your first tool in 14 days</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
+              <span className="whitespace-normal">Save $20K+ yearly forever</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-              <span className="whitespace-normal">Access every tool I build</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
+              <span className="whitespace-normal">Get code from every execution</span>
             </div>
           </div>
         </div>
@@ -181,7 +178,7 @@ export function CommunityBadge() {
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="default"
           >
-            Get Free Template
+            Start Building Now
           </Button>
         ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
           // Free tier user - show upgrade
@@ -190,13 +187,13 @@ export function CommunityBadge() {
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="default"
           >
-            Upgrade to Premium
+            Join The Movement
           </Button>
         ) : user && !hasActiveSubscription && !isAdmin ? (
           // Logged in but no tier/subscription
           <Button 
             onClick={() => setShowPaymentModal(true)}
-            className="w-full"
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="default"
           >
             Join for $97/month
@@ -208,7 +205,7 @@ export function CommunityBadge() {
       <SignupModal 
         open={showSignupModal} 
         onOpenChange={setShowSignupModal}
-        communityName="Build What You Need by Chris"
+        communityName="The SaaS Genocide"
         onLoginClick={() => {
           setShowSignupModal(false)
           setShowLoginModal(true)
