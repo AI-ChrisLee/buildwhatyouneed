@@ -6,11 +6,12 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Paperclip, Link, Image, Smile, X, User } from "lucide-react"
+import { Paperclip, Link, Video, BarChart3, Smile, X } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { createThread, type ThreadWithAuthor } from "@/lib/supabase/client-queries"
 import { createClient } from "@/lib/supabase/client"
+import { ThreadEditor } from "./thread-editor"
+import { AvatarGradient } from "./ui/avatar-gradient"
 
 interface NewThreadDialogProps {
   open: boolean
@@ -19,27 +20,21 @@ interface NewThreadDialogProps {
 }
 
 const categories = [
-  { id: "general", label: "General" },
+  { id: "general", label: "General discussion" },
   { id: "show-tell", label: "Show & Tell" },
   { id: "help", label: "Help" },
   { id: "announcements", label: "Announcements" },
 ]
 
-interface Attachment {
-  type: 'image' | 'video'
-  url: string
-  name?: string
-}
-
 export function NewThreadDialog({ open, onOpenChange, onThreadCreated }: NewThreadDialogProps) {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [category, setCategory] = useState("general")
-  const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [linkInput, setLinkInput] = useState("")
-  const [showLinkInput, setShowLinkInput] = useState(false)
+  const [showUrlInput, setShowUrlInput] = useState(false)
+  const [urlToEmbed, setUrlToEmbed] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [user, setUser] = useState<{ email: string; name: string } | null>(null)
+  const [showIdeas, setShowIdeas] = useState(true)
   const supabase = createClient()
   
   useEffect(() => {
@@ -62,48 +57,25 @@ export function NewThreadDialog({ open, onOpenChange, onThreadCreated }: NewThre
     getUser()
   }, [supabase])
 
-  const handleAddLink = () => {
-    if (linkInput.trim()) {
-      const isVideo = linkInput.includes('youtube.com') || linkInput.includes('youtu.be') || 
-                      linkInput.includes('loom.com') || linkInput.includes('vimeo.com')
-      
-      setAttachments([...attachments, {
-        type: isVideo ? 'video' : 'image',
-        url: linkInput.trim()
-      }])
-      setLinkInput("")
-      setShowLinkInput(false)
+  const handleEmbedUrl = () => {
+    if (urlToEmbed) {
+      // Add URL as a link in the content
+      const urlHtml = `<p><a href="${urlToEmbed}" target="_blank">${urlToEmbed}</a></p>`
+      setContent(content + urlHtml)
+      setUrlToEmbed("")
+      setShowUrlInput(false)
     }
   }
 
-  const handleRemoveAttachment = (index: number) => {
-    setAttachments(attachments.filter((_, i) => i !== index))
-  }
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (submitting) return
+    if (submitting || !title.trim() || !content.trim()) return
     
     setSubmitting(true)
     try {
-      // For MVP: Append attachments as markdown to content
-      let fullContent = content.trim()
-      
-      if (attachments.length > 0) {
-        fullContent += '\n\n'
-        attachments.forEach(attachment => {
-          if (attachment.type === 'image') {
-            fullContent += `![Image](${attachment.url})\n`
-          } else {
-            fullContent += `[Video Link](${attachment.url})\n`
-          }
-        })
-      }
-      
       const newThread = await createThread({
         title: title.trim(),
-        content: fullContent,
+        content,
         category
       })
       
@@ -111,7 +83,7 @@ export function NewThreadDialog({ open, onOpenChange, onThreadCreated }: NewThre
       setTitle("")
       setContent("")
       setCategory("general")
-      setAttachments([])
+      setShowIdeas(true)
       
       // Call callback if provided
       if (onThreadCreated) {
@@ -127,160 +99,190 @@ export function NewThreadDialog({ open, onOpenChange, onThreadCreated }: NewThre
     }
   }
 
-  const getVideoThumbnail = (url: string) => {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.includes('youtube.com') 
-        ? url.split('v=')[1]?.split('&')[0]
-        : url.split('/').pop()
-      return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-    }
-    return null
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0">
+      <DialogContent className="max-w-3xl p-0 gap-0">
         <VisuallyHidden>
           <DialogTitle>Create a new thread</DialogTitle>
         </VisuallyHidden>
+        
         {/* Header */}
-        <div className="flex items-center gap-3 p-4 border-b">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback>
-              {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="text-sm font-medium">{user?.name || 'Loading...'} posting in Build What You Need</p>
+        <div className="px-6 py-4 border-b">
+          <div className="flex items-center gap-3">
+            {user ? (
+              <AvatarGradient seed={user.email} className="h-10 w-10" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-200" />
+            )}
+            <div className="flex-1">
+              <p className="text-sm">
+                <span className="font-medium">{user?.name || 'You'}</span>
+                <span className="text-gray-500"> posting in </span>
+                <span className="font-medium">Build What You Need</span>
+              </p>
+            </div>
           </div>
         </div>
         
         <form onSubmit={handleSubmit}>
-          <div className="p-4 space-y-4">
+          <div className="p-6 space-y-4">
             {/* Title */}
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Title"
-              className="text-lg font-medium border-0 px-0 focus-visible:ring-0"
+              className="text-2xl font-medium border-0 px-0 focus-visible:ring-0 placeholder:text-gray-400"
               required
             />
 
-            {/* Content */}
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+            {/* Content Editor */}
+            <ThreadEditor
+              content={content}
+              onChange={setContent}
               placeholder="Write something..."
-              className="min-h-[200px] border-0 px-0 resize-none focus-visible:ring-0"
-              required
+              minHeight="min-h-[250px]"
             />
 
-            {/* Attachments Preview */}
-            {attachments.length > 0 && (
-              <div className="space-y-2">
-                {attachments.map((attachment, index) => (
-                  <div key={index} className="relative group">
-                    {attachment.type === 'image' ? (
-                      <div className="relative">
-                        <img 
-                          src={attachment.url} 
-                          alt={attachment.name || 'Attached image'}
-                          className="max-h-64 rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAttachment(index)}
-                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-4 w-4 text-white" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg max-w-full">
-                          {getVideoThumbnail(attachment.url) && (
-                            <img 
-                              src={getVideoThumbnail(attachment.url)!} 
-                              alt="Video thumbnail"
-                              className="w-24 h-16 object-cover rounded flex-shrink-0"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate max-w-md">
-                              {attachment.url.length > 50 
-                                ? attachment.url.substring(0, 50) + '...' 
-                                : attachment.url}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Video link</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveAttachment(index)}
-                            className="p-1 hover:bg-background rounded-full flex-shrink-0"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {/* URL Input (if shown) */}
+            {showUrlInput && (
+              <div className="flex gap-2 p-3 bg-gray-50 rounded-lg">
+                <Input
+                  placeholder="Enter URL to embed..."
+                  value={urlToEmbed}
+                  onChange={(e) => setUrlToEmbed(e.target.value)}
+                  className="flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleEmbedUrl())}
+                />
+                <Button type="button" size="sm" onClick={handleEmbedUrl}>
+                  Embed
+                </Button>
+                <Button 
+                  type="button"
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => {
+                    setShowUrlInput(false)
+                    setUrlToEmbed("")
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             )}
 
-            {/* Link Input */}
-            {showLinkInput && (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  Paste a URL to an image (jpg, png, gif) or video (YouTube, Vimeo, Loom)
-                </p>
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={linkInput}
-                    onChange={(e) => setLinkInput(e.target.value)}
-                    placeholder="https://example.com/image.jpg or https://youtube.com/watch?v=..."
-                    className="flex-1"
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLink())}
-                  />
-                  <Button type="button" size="sm" onClick={handleAddLink}>Add</Button>
-                  <Button 
-                    type="button" 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={() => setShowLinkInput(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+            {/* Post Ideas Box */}
+            {showIdeas && (
+              <div className="bg-gray-50 rounded-lg p-4 relative">
+                <button
+                  type="button"
+                  className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowIdeas(false)}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                
+                <p className="font-medium text-gray-600 mb-3">Fun post ideas to kick off your community:</p>
+                
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex gap-2">
+                    <span>🗣️</span>
+                    <span>Ask members to introduce themselves and share a pic of their workspace</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span>❤️</span>
+                    <span>Ask members to share their favorite movie, book, travel destination, etc.</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span>📊</span>
+                    <span>Ask members to vote on their favorite pet</span>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-4 border-t bg-muted/30">
-            <div className="flex items-center gap-1">
+          <div className="px-6 py-4 border-t flex items-center justify-between bg-gray-50">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
+                size="sm"
                 variant="ghost"
-                size="icon"
-                onClick={() => setShowLinkInput(true)}
-                title="Add image or video URL"
+                className="h-8 w-8 p-0"
+                title="Attach file"
+                onClick={() => {/* TODO: File upload */}}
               >
-                <Link className="h-5 w-5" />
+                <Paperclip className="h-4 w-4" />
               </Button>
               
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="ml-4 w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={() => setShowUrlInput(!showUrlInput)}
+                title="Add link"
+              >
+                <Link className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                title="Add video"
+                onClick={() => setShowUrlInput(!showUrlInput)}
+              >
+                <Video className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                title="Create poll"
+                onClick={() => {/* TODO: Poll */}}
+              >
+                <BarChart3 className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                title="Add emoji"
+                onClick={() => {/* TODO: Emoji picker */}}
+              >
+                <Smile className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-xs text-gray-600"
+                onClick={() => {/* TODO: GIF picker */}}
+              >
+                GIF
+              </Button>
+              
+              <div className="ml-4">
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="h-8 text-sm w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">

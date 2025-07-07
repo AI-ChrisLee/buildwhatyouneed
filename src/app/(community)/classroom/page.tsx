@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { BookOpen, Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Plus } from "lucide-react"
+import { useEffect, useState, Suspense } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useMembership } from "@/hooks/use-membership"
 import { CourseModal } from "@/components/course-modal"
 import { useSearchParams, useRouter } from "next/navigation"
 
@@ -37,7 +36,7 @@ interface CourseWithCount extends Course {
   lesson_count?: number
 }
 
-export default function ClassroomPage() {
+function ClassroomPageContent() {
   const [courses, setCourses] = useState<CourseWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -48,7 +47,6 @@ export default function ClassroomPage() {
   const [editingCourse, setEditingCourse] = useState<CourseWithCount | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const supabase = createClient()
-  const { MembershipGate, AccessDeniedModal } = useMembership()
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -178,57 +176,72 @@ export default function ClassroomPage() {
   return (
     <div className="min-h-screen">
       {/* Main content */}
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6">
+      <div className="px-4 md:px-6 py-6">
 
-          {/* Empty state */}
-          {courses.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                <BookOpen className="h-6 w-6 text-muted-foreground" />
+        {/* Empty state */}
+        {courses.length === 0 && !isAdmin && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Plus className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              No courses available yet
+            </p>
+          </div>
+        )}
+
+        {/* Course Grid - 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              isAdmin={isAdmin}
+              userTier={userTier}
+              onDelete={(id) => setDeleteId(id)}
+              onLockedClick={() => {
+                setShowPaymentModal(true)
+              }}
+            />
+          ))}
+          
+          {/* Add Course Card for Admin */}
+          {isAdmin && (
+            <div
+              onClick={() => {
+                setEditingCourse(null)
+                setShowCourseModal(true)
+              }}
+              className="relative group overflow-hidden rounded-lg bg-card transition-all duration-200 hover:shadow-lg hover:-translate-y-1 cursor-pointer shadow-sm border-2 border-dashed border-gray-300 hover:border-gray-400"
+            >
+              {/* Course Image placeholder */}
+              <div className="aspect-[1460/752] bg-gray-50 relative overflow-hidden flex items-center justify-center">
+                <Plus className="h-12 w-12 text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                No courses available yet
-              </p>
-              {isAdmin && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/admin/courses/new">
-                    Create your first course
-                  </Link>
+              
+              <div className="p-4 space-y-3">
+                {/* Title */}
+                <h3 className="font-semibold text-lg text-gray-600 group-hover:text-gray-800 transition-colors">
+                  New course
+                </h3>
+                
+                {/* Placeholder progress bar */}
+                <div className="w-full bg-gray-100 rounded-full h-2" />
+                
+                <p className="text-xs text-gray-400">Click to create</p>
+                
+                {/* Button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-800"
+                >
+                  CREATE
                 </Button>
-              )}
+              </div>
             </div>
           )}
-
-          {/* Course Grid - Single column */}
-          <div className="space-y-6">
-            {courses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                isAdmin={isAdmin}
-                userTier={userTier}
-                onDelete={(id) => setDeleteId(id)}
-                onLockedClick={() => {
-                  setShowPaymentModal(true)
-                }}
-              />
-            ))}
-            
-            {/* Add Course Link */}
-            {isAdmin && (
-              <button
-                onClick={() => {
-                  setEditingCourse(null)
-                  setShowCourseModal(true)
-                }}
-                className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <Plus className="h-5 w-5" />
-                <span>New course</span>
-              </button>
-            )}
-          </div>
         </div>
+      </div>
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -249,36 +262,48 @@ export default function ClassroomPage() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-        </AlertDialog>
-        
-        {/* Payment Modal */}
-        <PaymentModal
-          open={showPaymentModal}
-          onOpenChange={setShowPaymentModal}
-          user={currentUser}
-        />
-        
-        {/* Course Modal */}
-        <CourseModal
-          open={showCourseModal}
-          onOpenChange={(open) => {
-            setShowCourseModal(open)
-            if (!open) {
-              setEditingCourse(null)
-            }
-          }}
-          course={editingCourse}
-          onSave={async (courseData) => {
-            await handleSaveCourse(courseData)
-            // Clear the edit query param after saving
-            if (searchParams.get('edit')) {
-              router.push('/classroom')
-            }
-          }}
-        />
-        
-        <AccessDeniedModal />
-      </div>
+      </AlertDialog>
+      
+      {/* Payment Modal */}
+      <PaymentModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        user={currentUser}
+      />
+      
+      {/* Course Modal */}
+      <CourseModal
+        open={showCourseModal}
+        onOpenChange={(open) => {
+          setShowCourseModal(open)
+          if (!open) {
+            setEditingCourse(null)
+          }
+        }}
+        course={editingCourse ? {...editingCourse, is_draft: editingCourse.is_draft ?? false} : null}
+        onSave={async (courseData) => {
+          await handleSaveCourse(courseData)
+          // Clear the edit query param after saving
+          if (searchParams.get('edit')) {
+            router.push('/classroom')
+          }
+        }}
+      />
     </div>
+  )
+}
+
+export default function ClassroomPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading classroom...</p>
+        </div>
+      </div>
+    }>
+      <ClassroomPageContent />
+    </Suspense>
   )
 }

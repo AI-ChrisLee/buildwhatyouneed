@@ -251,7 +251,7 @@ export default function AdminCoursesPage() {
             setEditingCourse(null)
           }
         }}
-        course={editingCourse}
+        course={editingCourse ? {...editingCourse, is_draft: editingCourse.is_draft ?? false} : null}
         onSave={handleSaveCourse}
       />
     </div>

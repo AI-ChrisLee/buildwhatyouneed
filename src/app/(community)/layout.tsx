@@ -18,8 +18,8 @@ export default function CommunityLayout({
 }) {
   const pathname = usePathname()
   
-  // Show community badge on these pages with 2-column layout
-  const showCommunityBadge = ['/threads', '/classroom', '/calendar'].includes(pathname)
+  // Show community badge only on threads page
+  const showCommunityBadge = ['/threads'].includes(pathname)
 
   const content = (
     <div className="min-h-screen bg-background">

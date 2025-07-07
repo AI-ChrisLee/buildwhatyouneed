@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { ThreadCardV2 } from "@/components/thread-card-v2"
-import { NewThreadDialog } from "@/components/new-thread-dialog"
+import { SimpleThreadDialog } from "@/components/simple-thread-dialog"
 import { ThreadDetailDialog } from "@/components/thread-detail-dialog"
 import { ChevronLeft, ChevronRight, Plus, MessageSquare } from "lucide-react"
 import { getThreads, type ThreadWithAuthor } from "@/lib/supabase/client-queries"
@@ -262,7 +262,7 @@ function ThreadsPageContent() {
         </div>
 
       {/* Dialogs */}
-      <NewThreadDialog 
+      <SimpleThreadDialog 
         open={isNewThreadOpen}
         onOpenChange={setIsNewThreadOpen}
         onThreadCreated={handleThreadCreated}

@@ -129,17 +129,16 @@ export function ThreadCardV2({ thread, onClick }: ThreadCardProps) {
 
   const media = extractMedia(thread.content)
 
-  // Extract preview text (first 150 characters, strip markdown including media)
-  const previewText = thread.content
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "") // Remove images
-    .replace(/\[Video Link\]\([^)]+\)/g, "") // Remove video links
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/^> (.+)$/gm, "$1")
-    .replace(/^- (.+)$/gm, "$1")
-    .replace(/\n/g, " ")
+  // Extract preview text from HTML content
+  const extractTextFromHtml = (html: string) => {
+    // Create a temporary div to parse HTML
+    const temp = document.createElement('div')
+    temp.innerHTML = html
+    // Get text content and clean it up
+    return temp.textContent || temp.innerText || ''
+  }
+
+  const previewText = extractTextFromHtml(thread.content)
     .trim()
     .substring(0, 150) + (thread.content.length > 150 ? "..." : "")
 

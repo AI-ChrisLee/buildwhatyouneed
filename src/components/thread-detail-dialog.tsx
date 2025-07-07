@@ -16,6 +16,7 @@ import {
   Pin,
   Trash2
 } from "lucide-react"
+import { ThreadContent } from "./thread-content"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -237,94 +238,8 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
             {/* Thread Title */}
             <h1 className="text-2xl font-bold mb-4">{thread.title}</h1>
             
-            {/* Thread Content - Parse markdown for media */}
-            <div className="prose prose-sm max-w-none">
-              {(() => {
-                // Parse content for media
-                const parts = thread.content.split(/(\!\[[^\]]*\]\([^)]+\)|\[Video Link\]\([^)]+\))/g)
-                
-                return parts.map((part: string, index: number) => {
-                  // Check if it's an image
-                  const imageMatch = part.match(/!\[([^\]]*)\]\(([^)]+)\)/)
-                  if (imageMatch) {
-                    return (
-                      <img 
-                        key={index}
-                        src={imageMatch[2]} 
-                        alt={imageMatch[1] || "Image"}
-                        className="w-full max-w-2xl rounded-lg my-4"
-                      />
-                    )
-                  }
-                  
-                  // Check if it's a video link
-                  const videoMatch = part.match(/\[Video Link\]\(([^)]+)\)/)
-                  if (videoMatch) {
-                    const url = videoMatch[1]
-                    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?]+)/)
-                    const loomMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/)
-                    const wistiaMatch = url.match(/(?:wistia\.com\/medias?\/|wi\.st\/)([a-zA-Z0-9]+)/)
-                    
-                    if (youtubeMatch) {
-                      return (
-                        <div key={index} className="relative w-full max-w-2xl aspect-video rounded-lg overflow-hidden bg-black my-4">
-                          <iframe
-                            src={`https://www.youtube.com/embed/${youtubeMatch[1]}`}
-                            title="YouTube video"
-                            className="absolute inset-0 w-full h-full"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      )
-                    }
-                    
-                    if (loomMatch) {
-                      return (
-                        <div key={index} className="relative w-full max-w-2xl aspect-video rounded-lg overflow-hidden bg-black my-4">
-                          <iframe
-                            src={`https://www.loom.com/embed/${loomMatch[1]}`}
-                            title="Loom video"
-                            className="absolute inset-0 w-full h-full"
-                            frameBorder="0"
-                            allowFullScreen
-                          />
-                        </div>
-                      )
-                    }
-                    
-                    if (wistiaMatch) {
-                      return (
-                        <div key={index} className="relative w-full max-w-2xl aspect-video rounded-lg overflow-hidden bg-black my-4">
-                          <iframe
-                            src={`https://fast.wistia.net/embed/iframe/${wistiaMatch[1]}`}
-                            title="Wistia video"
-                            className="absolute inset-0 w-full h-full"
-                            frameBorder="0"
-                            allow="autoplay; fullscreen"
-                            allowFullScreen
-                          />
-                        </div>
-                      )
-                    }
-                    
-                    return (
-                      <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                        {url}
-                      </a>
-                    )
-                  }
-                  
-                  // Regular text
-                  return (
-                    <span key={index} className="whitespace-pre-wrap text-foreground">
-                      {part}
-                    </span>
-                  )
-                })
-              })()}
-            </div>
+            {/* Thread Content */}
+            <ThreadContent content={thread.content} />
 
             {/* Thread Stats */}
             <div className="flex items-center gap-6 mt-6 pt-6 border-t">

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { BookOpen, Clock, Lock, Edit, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 interface Course {
   id: string
@@ -38,22 +39,33 @@ export function CourseCard({
   onDelete,
   onLockedClick 
 }: CourseCardProps) {
+  const router = useRouter()
   const isLocked = userTier === 'free' && !course.is_free
   const isFree = course.is_free
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on admin buttons
+    if ((e.target as HTMLElement).closest('.admin-actions')) {
+      return
+    }
+    
     if (isLocked) {
       e.preventDefault()
       onLockedClick?.()
+    } else {
+      router.push(`/classroom/${course.id}`)
     }
   }
 
-  const content = (
-    <div className={cn(
-      "relative group overflow-hidden rounded-lg bg-card transition-all duration-200",
-      isLocked ? "hover:shadow-lg" : "hover:shadow-lg hover:-translate-y-1",
-      "cursor-pointer shadow-sm"
-    )}>
+  return (
+    <div 
+      className={cn(
+        "relative group overflow-hidden rounded-lg bg-card transition-all duration-200",
+        isLocked ? "hover:shadow-lg" : "hover:shadow-lg hover:-translate-y-1",
+        "cursor-pointer shadow-sm"
+      )}
+      onClick={handleCardClick}
+    >
       {/* Course Image */}
       <div className="aspect-[1460/752] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
         {course.cover_image_url ? (
@@ -95,22 +107,21 @@ export function CourseCard({
 
         {/* Admin Actions */}
         {isAdmin && !isLocked && (
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="admin-actions absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               size="sm"
               variant="secondary"
-              asChild
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/admin/courses/${course.id}`)
+              }}
             >
-              <Link href={`/admin/courses/${course.id}`}>
-                <Edit className="h-4 w-4" />
-              </Link>
+              <Edit className="h-4 w-4" />
             </Button>
             <Button
               size="sm"
               variant="secondary"
               onClick={(e) => {
-                e.preventDefault()
                 e.stopPropagation()
                 onDelete?.(course.id)
               }}
@@ -151,15 +162,5 @@ export function CourseCard({
         </Button>
       </div>
     </div>
-  )
-
-  if (isLocked) {
-    return <div onClick={handleClick}>{content}</div>
-  }
-
-  return (
-    <Link href={`/classroom/${course.id}`}>
-      {content}
-    </Link>
   )
 }
