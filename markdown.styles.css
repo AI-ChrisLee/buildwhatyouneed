@@ -1,0 +1,317 @@
+/* Notion-Style Markdown Preview for Cursor IDE */
+/* Clean, minimal design with subtle variations */
+
+/* Root variables for Notion-like theming */
+:root {
+  --markdown-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  --markdown-code-font: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  --markdown-primary-color: #37352f;
+  --markdown-secondary-color: #787774;
+  --markdown-light-gray: #e9e9e7;
+  --markdown-lighter-gray: #f7f6f3;
+  --markdown-border-color: #e9e9e7;
+  --markdown-bg-color: #ffffff;
+  --markdown-code-bg: #f7f6f3;
+  --markdown-code-text: #eb5757;
+  --markdown-quote-bg: #f7f6f3;
+  --markdown-link-color: #37352f;
+  --markdown-max-width: 900px;
+}
+
+/* Base body styles */
+body {
+  font-family: var(--markdown-font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--markdown-primary-color);
+  background-color: var(--markdown-bg-color);
+  padding: 32px 48px;
+  max-width: var(--markdown-max-width);
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  letter-spacing: -0.011em;
+}
+
+/* Heading styles - Notion-like */
+h1 {
+  font-size: 2.25em !important;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--markdown-primary-color);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.875em !important;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--markdown-primary-color);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.5em !important;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--markdown-primary-color);
+}
+
+h4 {
+  font-size: 1.25em !important;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--markdown-primary-color);
+}
+
+h5 {
+  font-size: 1.125em !important;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--markdown-primary-color);
+}
+
+h6 {
+  font-size: 1em !important;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--markdown-primary-color);
+}
+
+/* Paragraph styles */
+p {
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  color: var(--markdown-primary-color);
+}
+
+/* Strong emphasis styles - yellow highlighter effect */
+strong, b {
+  font-weight: 600;
+  color: var(--markdown-primary-color);
+  background-color: #ffeb3b;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+/* Extra strong emphasis for key points */
+strong strong {
+  font-weight: 700;
+  background-color: #ffd600;
+  padding: 0 4px;
+}
+
+/* Italic styles */
+em, i {
+  font-style: italic;
+}
+
+/* Link styles - Notion-like */
+a {
+  color: var(--markdown-link-color);
+  text-decoration: underline;
+  text-decoration-color: rgba(55, 53, 47, 0.25);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+a:hover {
+  text-decoration-color: rgba(55, 53, 47, 0.5);
+}
+
+/* List styles */
+ul, ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.75rem;
+}
+
+li {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}
+
+li > ul, li > ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Code styles - Notion-like */
+code {
+  font-family: var(--markdown-code-font);
+  font-size: 0.85em;
+  background-color: var(--markdown-code-bg);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  color: var(--markdown-code-text);
+  white-space: nowrap;
+}
+
+pre {
+  font-family: var(--markdown-code-font);
+  font-size: 0.85em;
+  background-color: var(--markdown-code-bg);
+  border-radius: 3px;
+  padding: 1.5rem;
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.45;
+  tab-size: 2;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  color: var(--markdown-primary-color);
+  white-space: pre;
+}
+
+/* Blockquote styles */
+blockquote {
+  border-left: 4px solid var(--markdown-accent-color);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  background-color: var(--markdown-quote-bg);
+  font-style: italic;
+  color: var(--markdown-secondary-color);
+  border-radius: 0 4px 4px 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Horizontal rule styles */
+hr {
+  border: none;
+  height: 3px;
+  background: linear-gradient(to right, transparent, var(--markdown-border-color), transparent);
+  margin: 3rem auto;
+  width: 80%;
+}
+
+/* Table styles */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow: auto;
+}
+
+th, td {
+  border: 1px solid var(--markdown-border-color);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+th {
+  background-color: var(--markdown-code-bg);
+  font-weight: 700;
+  color: var(--markdown-primary-color);
+}
+
+tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Image styles */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 1.5rem 0;
+}
+
+/* Special styling for course modules */
+h1:first-of-type {
+  font-size: 3em !important;
+  text-align: center;
+  border-bottom: 4px solid var(--markdown-accent-color);
+  margin-bottom: 2rem;
+}
+
+/* Highlighted text blocks */
+mark {
+  background-color: #fff59d;
+  color: var(--markdown-primary-color);
+  padding: 0.1em 0.2em;
+  border-radius: 3px;
+}
+
+/* Task list styles */
+.task-list-item {
+  list-style-type: none;
+  margin-left: -1.5rem;
+}
+
+.task-list-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+  transform: scale(1.2);
+}
+
+/* Footnote styles */
+.footnote {
+  font-size: 0.875em;
+  color: var(--markdown-secondary-color);
+}
+
+/* Print styles */
+@media print {
+  body {
+    max-width: 100%;
+    padding: 0;
+    font-size: 12pt;
+  }
+  
+  h1 { page-break-before: always; }
+  h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
+  pre, blockquote { page-break-inside: avoid; }
+}
+
+/* Dark mode support - disabled for now to ensure white background */
+/* Uncomment this section if you want dark mode support
+@media (prefers-color-scheme: dark) {
+  :root {
+    --markdown-primary-color: #e2e8f0;
+    --markdown-secondary-color: #a0aec0;
+    --markdown-accent-color: #63b3ed;
+    --markdown-border-color: #4a5568;
+    --markdown-bg-color: #1a202c;
+    --markdown-code-bg: #2d3748;
+    --markdown-quote-bg: #2d3748;
+  }
+  
+  strong strong {
+    background-color: rgba(99, 179, 237, 0.2);
+  }
+  
+  tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  mark {
+    background-color: #f6e05e;
+    color: #1a202c;
+  }
+  
+  img {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+*/

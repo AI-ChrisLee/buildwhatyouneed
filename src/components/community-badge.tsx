@@ -140,15 +140,11 @@ export function CommunityBadge() {
         </div>
         
         <p className="text-sm">
-          Learn how to build tools that replace every SaaS subscription. Kill your bills, own your software forever.
+          We kill SaaS with vibe coding. Every Saturday, watch us build replacements for tools you're sick of paying for.
         </p>
         
         {/* Links */}
         <div className="space-y-2 text-sm">
-          <Link href="/classroom" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-            <span className="text-gray-400">🔗</span>
-            <span>Vibe Coding Blueprints</span>
-          </Link>
           <a href="https://www.youtube.com/@AIChrisLee" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
             <span className="text-gray-400">🔗</span>
             <span>YouTube</span>
@@ -196,7 +192,7 @@ export function CommunityBadge() {
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="lg"
           >
-            Start Building Now
+            Join The SaaS Genocide
           </Button>
         ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
           <Button 
@@ -204,7 +200,7 @@ export function CommunityBadge() {
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="lg"
           >
-            Upgrade
+            Upgrade to Premium
           </Button>
         ) : null}
       </div>
