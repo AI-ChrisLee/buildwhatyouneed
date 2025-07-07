@@ -333,59 +333,34 @@ function HomePageContent() {
             </div>
 
             {/* Stats Badge - Horizontal */}
-            <div className="px-6 py-3 flex flex-col gap-3 text-base w-full sm:w-fit">
-              {/* Mobile: Row 1 - Private, 2 members */}
-              {/* Desktop: All in one row */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8">
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3">
-                    <Lock className="h-5 w-5 text-gray-700" />
-                    <span className="text-gray-900 font-medium">Private</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-gray-700" />
-                    <span className="text-gray-900 font-medium">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || 2} members</span>
-                  </div>
-                  
-                  <div className="hidden sm:flex items-center gap-3">
-                    <svg className="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                    </svg>
-                    <span className="text-gray-900 font-medium">Free</span>
-                  </div>
+            <div className="px-2 sm:px-6 py-2 sm:py-3 flex items-center justify-center sm:justify-start gap-2 sm:gap-8 text-xs sm:text-base w-full">
+              <div className="flex items-center gap-2 sm:gap-6 justify-between w-full sm:w-auto">
+                <div className="flex items-center gap-1 sm:gap-3">
+                  <Lock className="h-3 w-3 sm:h-5 sm:w-5 text-gray-700" />
+                  <span className="text-gray-900 font-medium whitespace-nowrap">Private</span>
                 </div>
                 
-                <div className="hidden sm:flex items-center gap-2">
-                  <Image 
-                    src="/logo.png" 
-                    alt="AI Chris Lee" 
-                    width={24} 
-                    height={24} 
-                    className="w-6 h-6 rounded-full"
-                  />
-                  <span className="text-gray-900 font-medium">By AI Chris Lee</span>
+                <div className="flex items-center gap-1 sm:gap-3">
+                  <Users className="h-3 w-3 sm:h-5 sm:w-5 text-gray-700" />
+                  <span className="text-gray-900 font-medium whitespace-nowrap">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || 2} members</span>
                 </div>
-              </div>
-              
-              {/* Mobile: Row 2 - Free, By AI Chris Lee */}
-              <div className="flex sm:hidden items-center gap-6">
-                <div className="flex items-center gap-3">
-                  <svg className="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+                
+                <div className="flex items-center gap-1 sm:gap-3">
+                  <svg className="h-3 w-3 sm:h-5 sm:w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                   </svg>
-                  <span className="text-gray-900 font-medium">Free</span>
+                  <span className="text-gray-900 font-medium whitespace-nowrap">Free</span>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Image 
                     src="/logo.png" 
                     alt="AI Chris Lee" 
-                    width={24} 
-                    height={24} 
-                    className="w-6 h-6 rounded-full"
+                    width={16} 
+                    height={16} 
+                    className="w-4 h-4 sm:w-6 sm:h-6 rounded-full"
                   />
-                  <span className="text-gray-900 font-medium">By AI Chris Lee</span>
+                  <span className="text-gray-900 font-medium whitespace-nowrap">By AI Chris Lee</span>
                 </div>
               </div>
             </div>
