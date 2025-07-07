@@ -42,6 +42,7 @@ interface Lesson {
   title: string
   content: string | null
   order_index: number
+  is_draft?: boolean
 }
 
 interface LessonCompletion {
@@ -71,6 +72,7 @@ export default function CourseDetailPage() {
   const [editingLesson, setEditingLesson] = useState<string | null>(null)
   const [editingContent, setEditingContent] = useState("")
   const [editingTitle, setEditingTitle] = useState("")
+  const [editingDraft, setEditingDraft] = useState(false)
   const [saving, setSaving] = useState(false)
   const [completions, setCompletions] = useState<LessonCompletion[]>([])
   const [userId, setUserId] = useState<string | null>(null)
@@ -209,7 +211,8 @@ export default function CourseDetailPage() {
       .from('lessons')
       .update({ 
         content: editingContent,
-        title: editingTitle 
+        title: editingTitle,
+        is_draft: editingDraft
       })
       .eq('id', lessonId)
       .select()
@@ -220,7 +223,7 @@ export default function CourseDetailPage() {
       alert('Failed to save lesson: ' + error.message)
     } else {
       setLessons(lessons.map(l => 
-        l.id === lessonId ? { ...l, content: editingContent, title: editingTitle } : l
+        l.id === lessonId ? { ...l, content: editingContent, title: editingTitle, is_draft: editingDraft } : l
       ))
       setEditingLesson(null)
       // Keep the lesson selected to show the saved content
@@ -622,6 +625,11 @@ export default function CourseDetailPage() {
                             )}
                             <FileText className="h-4 w-4 text-gray-400" />
                             <span className="flex-1">{lesson.title}</span>
+                            {lesson.is_draft && isAdmin && (
+                              <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+                                DRAFT
+                              </span>
+                            )}
                             
                             {/* 3-dots menu */}
                             {isAdmin && (
@@ -640,6 +648,7 @@ export default function CourseDetailPage() {
                                     setEditingLesson(lesson.id)
                                     setEditingContent(lesson.content || "")
                                     setEditingTitle(lesson.title)
+                                    setEditingDraft(lesson.is_draft || false)
                                     setSelectedLesson(lesson.id)
                                   }}>
                                     <Edit2 className="h-4 w-4 mr-2" />
@@ -750,6 +759,11 @@ export default function CourseDetailPage() {
                                   )}
                                   <FileText className="h-4 w-4 text-gray-400" />
                                   <span className="flex-1">{lesson.title}</span>
+                                  {lesson.is_draft && isAdmin && (
+                                    <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+                                      DRAFT
+                                    </span>
+                                  )}
                                   
                                   {/* 3-dots menu */}
                                   {isAdmin && (
@@ -768,6 +782,7 @@ export default function CourseDetailPage() {
                                           setEditingLesson(lesson.id)
                                           setEditingContent(lesson.content || "")
                                           setEditingTitle(lesson.title)
+                                          setEditingDraft(lesson.is_draft || false)
                                           setSelectedLesson(lesson.id)
                                         }}>
                                           <Edit2 className="h-4 w-4 mr-2" />
@@ -837,8 +852,8 @@ export default function CourseDetailPage() {
                           <div className="flex items-center gap-2">
                             <span className="text-sm">Published</span>
                             <Switch
-                              checked={!course.is_draft}
-                              onCheckedChange={toggleCourseDraft}
+                              checked={!editingDraft}
+                              onCheckedChange={(checked) => setEditingDraft(!checked)}
                             />
                           </div>
                           
@@ -868,7 +883,14 @@ export default function CourseDetailPage() {
                 return (
                   <>
                     <div className="flex items-center justify-between mb-6">
-                      <h1 className="text-3xl font-bold">{currentLesson.title}</h1>
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold">{currentLesson.title}</h1>
+                        {currentLesson.is_draft && isAdmin && (
+                          <span className="px-2 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+                            DRAFT
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-3">
                         {/* Progress checkbox */}
                         <button
@@ -894,6 +916,7 @@ export default function CourseDetailPage() {
                               setEditingLesson(currentLesson.id)
                               setEditingContent(currentLesson.content || "")
                               setEditingTitle(currentLesson.title)
+                              setEditingDraft(currentLesson.is_draft || false)
                             }}
                           >
                             Edit
