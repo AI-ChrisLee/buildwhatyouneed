@@ -82,9 +82,9 @@ export function CourseCard({
         
         {/* Badges */}
         <div className="absolute top-3 left-3 flex gap-2">
-          {course.is_draft && (
-            <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-200">
-              Draft
+          {course.is_draft && isAdmin && (
+            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+              DRAFT
             </Badge>
           )}
           {isFree && (
