@@ -214,7 +214,7 @@ function HomePageContent() {
             >
               Start Building Now
             </Button>
-          ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
+          ) : user && subscriptionStatus === 'none' && !isAdmin ? (
             <Button 
               onClick={() => setShowPaymentModal(true)}
               className="w-full bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
@@ -616,33 +616,40 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Organization",
+            "@type": "EducationalOrganization",
             "name": "The SaaS Genocide",
-            "description": "Ending SaaS subscriptions forever. We teach vibe coding to build tools in hours, not months. 312+ SaaS killed. Join 2k+ builders.",
+            "alternateName": "Build What You Need",
+            "description": "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Kill your SaaS bills forever.",
             "url": "https://buildwhatyouneed.com",
-            "logo": "https://buildwhatyouneed.com/logo-toggle.svg",
+            "logo": "https://buildwhatyouneed.com/logo.png",
+            "image": "https://buildwhatyouneed.com/saas-genocide-hero.jpg",
             "founder": {
-              "@type": "Organization",
-              "name": "The SaaS Genocide",
-              "url": "https://buildwhatyouneed.com",
-              "description": "Community of builders replacing SaaS with vibe coding."
+              "@type": "Person",
+              "name": "AI Chris Lee",
+              "url": "https://aichrislee.com",
+              "sameAs": [
+                "https://www.youtube.com/@AIChrisLee",
+                "https://x.com/AiChrisLee"
+              ]
             },
             "offers": {
               "@type": "Offer",
-              "price": "97",
+              "price": "0",
               "priceCurrency": "USD",
               "availability": "https://schema.org/InStock",
               "validFrom": "2025-07-04",
-              "name": "The SaaS Genocide Community",
-              "description": "Learn vibe coding. Watch weekly builds. Get complete source code. The 4 Step Vibe Blueprint. Join 2k+ builders. Replace your first SaaS in 14 days."
+              "name": "Vibe Coding Blueprint - Free Access",
+              "description": "Learn vibe coding with AI. Build SaaS replacements in hours. Free blueprints, weekly builds, source code access."
             },
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "4.9",
-              "reviewCount": "312",
+              "reviewCount": "2100",
               "bestRating": "5",
               "worstRating": "1"
-            }
+            },
+            "teaches": ["Vibe Coding", "AI Development", "SaaS Replacement", "Claude AI", "Cursor IDE"],
+            "keywords": "vibe coding, AI development, SaaS replacement, AI Chris Lee, build with AI"
           })
         }}
       />

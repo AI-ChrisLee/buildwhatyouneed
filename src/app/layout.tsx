@@ -7,13 +7,13 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: {
-    default: "Build What You Need With Vibe Coding - The SaaS Genocide",
+    default: "The SaaS Genocide by AI Chris Lee - Learn Vibe Coding & Build SaaS Replacements",
     template: "%s | The SaaS Genocide"
   },
-  description: "Build what you need with vibe coding. We're ending SaaS subscriptions forever. Kill your first bill in 14 days using AI. Join The SaaS Genocide.",
-  keywords: ["SaaS genocide", "vibe coding", "kill SaaS subscriptions", "build don't rent", "SaaS replacement", "software sovereignty", "cancel SaaS", "build what you need", "no code movement", "AI development"],
-  authors: [{ name: "The SaaS Genocide" }],
-  creator: "The SaaS Genocide",
+  description: "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Kill your SaaS bills forever. Free blueprints, weekly builds, 2k+ builders. Start free today.",
+  keywords: ["vibe coding", "AI Chris Lee", "SaaS genocide", "AI development", "build SaaS with AI", "replace SaaS", "AI coding", "Claude AI", "Cursor IDE", "SaaS alternatives", "build don't rent", "cancel subscriptions", "software ownership", "AI automation"],
+  authors: [{ name: "AI Chris Lee", url: "https://aichrislee.com" }],
+  creator: "AI Chris Lee",
   publisher: "The SaaS Genocide",
   robots: {
     index: true,
@@ -37,23 +37,24 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://buildwhatyouneed.com",
     siteName: "The SaaS Genocide",
-    title: "Build What You Need With Vibe Coding - The SaaS Genocide",
-    description: "Build what you need with vibe coding. We're ending SaaS subscriptions forever. Kill your first bill in 14 days.",
+    title: "The SaaS Genocide by AI Chris Lee - Learn Vibe Coding & Build SaaS Replacements",
+    description: "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Kill your SaaS bills forever. Free blueprints, weekly builds, 2k+ builders.",
     images: [
       {
-        url: "/logo.png",
+        url: "https://buildwhatyouneed.com/saas-genocide-hero.jpg",
         width: 1200,
         height: 630,
-        alt: "The SaaS Genocide Movement",
+        alt: "The SaaS Genocide by AI Chris Lee - Learn Vibe Coding",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "The SaaS Genocide - Kill Your SaaS Bills",
-    description: "Learn vibe coding. Build in hours. Join 2k+ builders. $0/month forever.",
-    images: ["/logo.png"],
-    creator: "@saasgenocide",
+    title: "The SaaS Genocide - Learn Vibe Coding with AI",
+    description: "Build SaaS replacements in hours using AI. Kill your bills forever. Free blueprints by AI Chris Lee.",
+    images: ["https://buildwhatyouneed.com/saas-genocide-hero.jpg"],
+    creator: "@AiChrisLee",
+    site: "@AiChrisLee",
   },
   alternates: {
     canonical: "https://buildwhatyouneed.com",

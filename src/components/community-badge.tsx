@@ -110,10 +110,11 @@ export function CommunityBadge() {
         {/* Roman emperor image */}
         <Image 
           src="/saas-genocide-hero.jpg" 
-          alt="The SaaS Genocide"
+          alt="The SaaS Genocide by AI Chris Lee - Vibe Coding Hero Image"
           fill
           className="object-cover"
           priority
+          sizes="(max-width: 768px) 100vw, 320px"
           onError={(e) => {
             // Hide image if it fails to load
             e.currentTarget.style.display = 'none';
@@ -159,14 +160,10 @@ export function CommunityBadge() {
         </div>
         
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 py-4 border-y">
+        <div className="grid grid-cols-2 gap-4 py-4 border-y">
           <div className="text-center">
             <p className="text-2xl font-bold">{loading ? '...' : memberCount > 1000 ? `${(memberCount / 1000).toFixed(1)}k` : memberCount || '2.1k'}</p>
             <p className="text-xs text-muted-foreground">Members</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold">{loading ? '...' : Math.floor(memberCount * 0.01) || 21}</p>
-            <p className="text-xs text-muted-foreground">Online</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">{loading ? '...' : adminCount || 10}</p>
