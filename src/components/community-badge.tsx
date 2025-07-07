@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, Sparkles } from "lucide-react"
+import { Users, Sparkles, Lock } from "lucide-react"
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -11,6 +11,8 @@ import { FreeSignupModal } from "@/components/free-signup-modal"
 import { LoginModal } from "@/components/login-modal"
 import PaymentModal from "@/components/payment-modal"
 import { AvatarGradient } from "@/components/ui/avatar-gradient"
+import Image from "next/image"
+import Link from "next/link"
 
 export function CommunityBadge() {
   const [memberCount, setMemberCount] = useState<number>(0)
@@ -102,104 +104,113 @@ export function CommunityBadge() {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="p-6 pb-0">
-        <div className="mb-4">
-          <h3 className="font-semibold text-lg">The Community</h3>
-        </div>
+    <Card className="overflow-hidden border shadow-sm">
+      {/* Header with Roman emperor image */}
+      <div className="relative h-48 bg-black overflow-hidden">
+        {/* Roman emperor image */}
+        <Image 
+          src="/saas-genocide-hero.jpg" 
+          alt="The SaaS Genocide"
+          fill
+          className="object-cover"
+          priority
+          onError={(e) => {
+            // Hide image if it fails to load
+            e.currentTarget.style.display = 'none';
+          }}
+        />
         
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-medium mb-1">The SaaS Genocide by Chris</h4>
-            <p className="text-sm text-muted-foreground">
-              A community using vibe coding to end SaaS subscriptions forever.
-            </p>
-          </div>
-
-          {/* Stats */}
-          <div className="flex gap-6">
-            <div>
-              <p className="text-2xl font-semibold">{loading ? '...' : memberCount}</p>
-              <p className="text-xs text-muted-foreground">Assassins</p>
-            </div>
-            <div>
-              <p className="text-2xl font-semibold">$97</p>
-              <p className="text-xs text-muted-foreground">/month</p>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
-              <span className="whitespace-normal">Kill your first SaaS in 14 days</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
-              <span className="whitespace-normal">Save $20K+ yearly forever</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
-              <span className="whitespace-normal">Get code from every execution</span>
-            </div>
-          </div>
+        {/* Strong gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+        
+        {/* Text overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
+          <h3 className="text-2xl font-bold drop-shadow-lg">The SaaS Genocide</h3>
+          <p className="text-sm mt-1 text-white/90 drop-shadow-lg">By AI Chris Lee</p>
         </div>
       </div>
       
-      <CardContent className="p-6">
-        {/* Member Avatars */}
-        <div className="mb-4">
-          <p className="text-xs text-muted-foreground mb-3">Recent members</p>
+      <div className="p-6 space-y-4">
+        {/* Community Info */}
+        <div>
+          <p className="text-sm text-muted-foreground text-gray-500">
+            aichrislee.com
+          </p>
+        </div>
+        
+        <p className="text-sm">
+          Learn how to build tools that replace every SaaS subscription. Kill your bills, own your software forever.
+        </p>
+        
+        {/* Links */}
+        <div className="space-y-2 text-sm">
+          <Link href="/classroom" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <span className="text-gray-400">🔗</span>
+            <span>Vibe Coding Blueprints</span>
+          </Link>
+          <a href="https://www.youtube.com/@AIChrisLee" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <span className="text-gray-400">🔗</span>
+            <span>YouTube</span>
+          </a>
+          <a href="https://x.com/AiChrisLee" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <span className="text-gray-400">🔗</span>
+            <span>X</span>
+          </a>
+        </div>
+        
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 py-4 border-y">
+          <div className="text-center">
+            <p className="text-2xl font-bold">{loading ? '...' : memberCount > 1000 ? `${(memberCount / 1000).toFixed(1)}k` : memberCount || '2.1k'}</p>
+            <p className="text-xs text-muted-foreground">Members</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold">{loading ? '...' : Math.floor(memberCount * 0.01) || 21}</p>
+            <p className="text-xs text-muted-foreground">Online</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold">{loading ? '...' : adminCount || 10}</p>
+            <p className="text-xs text-muted-foreground">Admins</p>
+          </div>
+        </div>
+        
+        {/* Member Avatars - Left aligned */}
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">Recent members</p>
           <div className="flex -space-x-2">
             {recentMembers.slice(0, 8).map((member) => (
               <div key={member.id} className="relative group">
                 <AvatarGradient 
                   seed={member.email} 
-                  className="h-8 w-8 rounded-full border-2 border-background ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2 group-hover:ring-offset-background"
+                  className="h-8 w-8 rounded-full border-2 border-white ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2"
                 />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 whitespace-nowrap transition-opacity">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 whitespace-nowrap transition-opacity z-10">
                   {member.full_name || member.email?.split('@')[0]}
                 </div>
               </div>
             ))}
-            {memberCount > 8 && (
-              <div className="h-8 w-8 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                <span className="text-xs text-muted-foreground">+{memberCount - 8}</span>
-              </div>
-            )}
           </div>
         </div>
-
-        {/* CTA Buttons based on user state */}
+        
+        {/* CTA Button */}
         {!user ? (
-          // Not logged in - only show free access
           <Button 
             onClick={() => setShowFreeSignupModal(true)}
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-            size="default"
+            size="lg"
           >
             Start Building Now
           </Button>
         ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
-          // Free tier user - show upgrade
           <Button 
             onClick={() => setShowPaymentModal(true)}
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-            size="default"
+            size="lg"
           >
-            Join The Movement
-          </Button>
-        ) : user && !hasActiveSubscription && !isAdmin ? (
-          // Logged in but no tier/subscription
-          <Button 
-            onClick={() => setShowPaymentModal(true)}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-            size="default"
-          >
-            Join for $97/month
+            Upgrade
           </Button>
         ) : null}
-      </CardContent>
+      </div>
 
       {/* Signup Modal */}
       <SignupModal 

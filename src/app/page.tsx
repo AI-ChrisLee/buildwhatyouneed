@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AvatarGradient } from "@/components/ui/avatar-gradient"
 import { Users, User, Calendar, DollarSign, BookOpen, Code, Zap, Edit, Lock } from "lucide-react"
+import Image from "next/image"
 import { ProtectedNavBar } from "@/components/protected-navbar"
 import Link from "next/link"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-actions"
 import PaymentModal from "@/components/payment-modal"
@@ -31,6 +32,8 @@ function HomePageContent() {
   const [checkingPayment, setCheckingPayment] = useState(false)
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'none' | 'active' | 'past_due'>('loading')
   const [selectedHeroImage, setSelectedHeroImage] = useState(0)
+  const [showFloatingCTA, setShowFloatingCTA] = useState(true)
+  const offerSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const content = {
@@ -107,6 +110,23 @@ function HomePageContent() {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
+  // Handle scroll to hide floating CTA when reaching offer section
+  useEffect(() => {
+    const handleScroll = () => {
+      if (offerSectionRef.current) {
+        const rect = offerSectionRef.current.getBoundingClientRect()
+        const windowHeight = window.innerHeight
+        // Hide when offer section is 100px from bottom of viewport
+        setShowFloatingCTA(rect.top > windowHeight - 100)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    handleScroll() // Check initial position
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   async function handleJoinClick() {
     setCheckingPayment(true)
     
@@ -180,6 +200,31 @@ function HomePageContent() {
   return (
     <div className="min-h-screen bg-background">
       <ProtectedNavBar />
+      
+      {/* Floating CTA - Mobile Only */}
+      <div className={`fixed bottom-0 left-0 right-0 z-40 pt-16 pb-4 px-4 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none sm:hidden transition-all duration-300 ${
+        showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+      }`}>
+        <div className="pointer-events-auto">
+          {!user ? (
+            <Button 
+              onClick={() => setShowFreeSignupModal(true)}
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
+              size="lg"
+            >
+              Start Building Now
+            </Button>
+          ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
+            <Button 
+              onClick={() => setShowPaymentModal(true)}
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
+              size="lg"
+            >
+              Upgrade Now
+            </Button>
+          ) : null}
+        </div>
+      </div>
       {/* Admin Edit Button */}
       {isAdmin && (
         <div className="border-b">
@@ -195,8 +240,8 @@ function HomePageContent() {
       )}
 
       {/* Main content */}
-      <div className="max-w-[1080px] mx-auto px-4 md:px-6 py-8 md:py-12">
-        <div className="flex gap-6">
+      <div className="max-w-[1080px] mx-auto px-4 md:px-6 py-8 md:py-12 pb-24 sm:pb-8">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1 min-w-0">
         {/* Success message after payment */}
         {searchParams.get('success') === 'true' && subscriptionStatus === 'active' && (
@@ -287,19 +332,61 @@ function HomePageContent() {
               </div>
             </div>
 
-            {/* Stats - Only 4 key items */}
-            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-red-600">☠️</span>
-                <span className="font-semibold">{content.myStats.communityTotal} SaaS killed</span>
+            {/* Stats Badge - Horizontal */}
+            <div className="px-6 py-3 flex flex-col gap-3 text-base w-full sm:w-fit">
+              {/* Mobile: Row 1 - Private, 2 members */}
+              {/* Desktop: All in one row */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5 text-gray-700" />
+                    <span className="text-gray-900 font-medium">Private</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-gray-700" />
+                    <span className="text-gray-900 font-medium">{realStats.memberCount > 1000 ? `${(realStats.memberCount / 1000).toFixed(1)}k` : realStats.memberCount || 2} members</span>
+                  </div>
+                  
+                  <div className="hidden sm:flex items-center gap-3">
+                    <svg className="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                    </svg>
+                    <span className="text-gray-900 font-medium">Free</span>
+                  </div>
+                </div>
+                
+                <div className="hidden sm:flex items-center gap-2">
+                  <Image 
+                    src="/logo.png" 
+                    alt="AI Chris Lee" 
+                    width={24} 
+                    height={24} 
+                    className="w-6 h-6 rounded-full"
+                  />
+                  <span className="text-gray-900 font-medium">By AI Chris Lee</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="font-semibold">{realStats.memberCount || 312} builders</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                <span className="font-semibold">$20K+ saved/year</span>
+              
+              {/* Mobile: Row 2 - Free, By AI Chris Lee */}
+              <div className="flex sm:hidden items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <svg className="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                  </svg>
+                  <span className="text-gray-900 font-medium">Free</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Image 
+                    src="/logo.png" 
+                    alt="AI Chris Lee" 
+                    width={24} 
+                    height={24} 
+                    className="w-6 h-6 rounded-full"
+                  />
+                  <span className="text-gray-900 font-medium">By AI Chris Lee</span>
+                </div>
               </div>
             </div>
 
@@ -448,14 +535,14 @@ function HomePageContent() {
               </div>
 
               {/* The Offer */}
-              <div className="space-y-4 border-t pt-8">
+              <div ref={offerSectionRef} className="space-y-4 border-t pt-8">
                 <h2 className="text-2xl font-bold">Start free. Kill your first SaaS in 14 days.</h2>
                 <p>
                   Get instant access to <strong>Module 1 of the 4 Step Vibe Blueprint</strong>. Learn target selection. 
                   Pick your victim. Join our next <strong>live execution</strong>.
                 </p>
                 <p className="font-semibold">
-                  Then upgrade for $97/month - less than ONE SaaS subscription you'll kill.
+                  Join thousands of builders who are taking back control of their tools.
                 </p>
                 {user && subscriptionStatus === 'active' ? (
                   <Button 
@@ -507,9 +594,9 @@ function HomePageContent() {
         </div>
           </div>
           
-          {/* Right Column - Community Badge (Desktop Only) */}
-          <aside className="hidden lg:block w-[280px] shrink-0">
-            <div className="sticky top-[90px]">
+          {/* Right Column - Community Badge */}
+          <aside className="w-full lg:w-[320px] shrink-0 mt-8 lg:mt-0">
+            <div className="lg:sticky lg:top-[90px]">
               <CommunityBadge />
             </div>
           </aside>

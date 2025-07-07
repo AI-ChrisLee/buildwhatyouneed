@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.ico",
-    apple: "/logo-toggle.svg",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
   openGraph: {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     description: "Build what you need with vibe coding. We're ending SaaS subscriptions forever. Kill your first bill in 14 days.",
     images: [
       {
-        url: "/logo-toggle.svg",
+        url: "/logo.png",
         width: 1200,
         height: 630,
         alt: "The SaaS Genocide Movement",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The SaaS Genocide - Kill Your SaaS Bills",
     description: "Learn vibe coding. Build in hours. Join 2k+ builders. $0/month forever.",
-    images: ["/logo-toggle.svg"],
+    images: ["/logo.png"],
     creator: "@saasgenocide",
   },
   alternates: {

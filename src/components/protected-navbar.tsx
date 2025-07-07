@@ -104,12 +104,13 @@ export function ProtectedNavBar() {
           <div className="flex h-14 items-center gap-2 md:gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <svg width="48" height="24" viewBox="0 0 64 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-6">
-                {/* Toggle background */}
-                <rect x="0" y="0" width="64" height="32" rx="16" fill="currentColor" className="text-black dark:text-white"/>
-                {/* Toggle circle (left position - "off" state) */}
-                <circle cx="16" cy="16" r="12" fill="white" className="dark:fill-black"/>
-              </svg>
+              <Image 
+                src="/logo.png" 
+                alt="The SaaS Genocide Logo" 
+                width={32} 
+                height={32} 
+                className="w-8 h-8"
+              />
               <span className="font-semibold text-base md:text-lg hidden sm:inline-block">The SaaS Genocide</span>
             </Link>
 

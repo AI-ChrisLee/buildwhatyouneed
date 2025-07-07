@@ -14,8 +14,8 @@ export function AuthLeftSection() {
 
       {/* Badge */}
       <div className="flex justify-center">
-        <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium">
-          🔥 Founding Member Exclusive: $97/month forever
+        <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+          ✨ Free Access - Start Building Today
         </div>
       </div>
 
@@ -28,7 +28,7 @@ export function AuthLeftSection() {
         </div>
       </div>
       <p className="text-center text-sm text-muted-foreground">
-        "Why Only 1000 Builders Get This Price (And What Happens at 1001)"
+        "Learn How to Build Your First SaaS Replacement in 14 Days"
       </p>
     </div>
   )
