@@ -82,6 +82,7 @@ export default function CourseDetailPage() {
   async function loadCourseData() {
     try {
       // Check if user is admin
+      let userIsAdmin = false
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setUserId(user.id)
@@ -91,7 +92,8 @@ export default function CourseDetailPage() {
           .eq('id', user.id)
           .single()
         
-        setIsAdmin(userData?.is_admin || false)
+        userIsAdmin = userData?.is_admin || false
+        setIsAdmin(userIsAdmin)
 
         // Load user's completions
         const { data: completionsData } = await supabase
@@ -110,6 +112,12 @@ export default function CourseDetailPage() {
         .single()
 
       if (courseData) {
+        // Check if user can view this course
+        if (courseData.is_draft && !userIsAdmin) {
+          // Non-admin trying to access draft course
+          router.push('/classroom')
+          return
+        }
         setCourse(courseData)
       }
 
@@ -530,6 +538,11 @@ export default function CourseDetailPage() {
             Classroom
           </Button>
           <h1 className="text-lg font-semibold">{course.title}</h1>
+          {course.is_draft && isAdmin && (
+            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+              DRAFT
+            </span>
+          )}
           <span className="text-sm text-gray-500">
             {lessons.length > 0 
               ? `${Math.round((completions.length / lessons.length) * 100)}%`

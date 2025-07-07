@@ -199,6 +199,10 @@ function ClassroomPageContent() {
               isAdmin={isAdmin}
               userTier={userTier}
               onDelete={(id) => setDeleteId(id)}
+              onEdit={(course) => {
+                setEditingCourse(course)
+                setShowCourseModal(true)
+              }}
               onLockedClick={() => {
                 setShowPaymentModal(true)
               }}

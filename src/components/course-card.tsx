@@ -29,6 +29,7 @@ interface CourseCardProps {
   isAdmin?: boolean
   userTier?: 'free' | 'paid'
   onDelete?: (courseId: string) => void
+  onEdit?: (course: CourseWithCount) => void
   onLockedClick?: () => void
 }
 
@@ -37,6 +38,7 @@ export function CourseCard({
   isAdmin = false, 
   userTier = 'free',
   onDelete,
+  onEdit,
   onLockedClick 
 }: CourseCardProps) {
   const router = useRouter()
@@ -113,7 +115,7 @@ export function CourseCard({
               variant="secondary"
               onClick={(e) => {
                 e.stopPropagation()
-                router.push(`/admin/courses/${course.id}`)
+                onEdit?.(course)
               }}
             >
               <Edit className="h-4 w-4" />
