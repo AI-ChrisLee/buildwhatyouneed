@@ -17,7 +17,9 @@ import {
   Copy,
   Trash2,
   Edit2,
-  Check
+  Check,
+  Menu,
+  X
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -77,6 +79,7 @@ export default function CourseDetailPage() {
   const [saving, setSaving] = useState(false)
   const [completions, setCompletions] = useState<LessonCompletion[]>([])
   const [userId, setUserId] = useState<string | null>(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     loadCourseData()
@@ -548,23 +551,44 @@ export default function CourseDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-3">
+      <div className="bg-white border-b px-4 md:px-6 py-3">
         <div className="flex items-center gap-3">
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/classroom')}
+            className="hidden md:flex"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Classroom
           </Button>
-          <h1 className="text-lg font-semibold">{course.title}</h1>
+          
+          {/* Mobile back button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push('/classroom')}
+            className="md:hidden"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-base md:text-lg font-semibold truncate">{course.title}</h1>
           {course.is_draft && isAdmin && (
-            <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">
+            <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded hidden sm:inline">
               DRAFT
             </span>
           )}
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 ml-auto">
             {lessons.length > 0 
               ? `${Math.round((completions.length / lessons.length) * 100)}%`
               : '0%'
@@ -573,12 +597,35 @@ export default function CourseDetailPage() {
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-57px)]">
+      <div className="relative flex h-[calc(100vh-57px)]">
+        {/* Mobile overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+        
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r overflow-y-auto">
+        <div className={`
+          fixed md:relative top-[57px] md:top-0 bottom-0 left-0 z-50 md:z-0
+          w-80 bg-white border-r overflow-y-auto
+          transform transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
           {/* Sidebar Header with Menu */}
-          {isAdmin && (
-            <div className="sticky top-0 bg-white border-b px-4 py-3 z-10 flex justify-end">
+          <div className="sticky top-0 bg-white border-b px-4 py-3 z-10 flex justify-between items-center">
+            {/* Mobile close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            
+            {isAdmin ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -606,8 +653,10 @@ export default function CourseDetailPage() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          )}
+            ) : (
+              <div className="w-10" />
+            )}
+          </div>
 
           <DragDropContext onDragEnd={onDragEnd}>
             {/* Root level droppable */}
@@ -636,6 +685,8 @@ export default function CourseDetailPage() {
                               setEditingLesson(null)
                               // Save to cookie
                               Cookies.set(`last-lesson-${courseId}`, lesson.id, { expires: 30 })
+                              // Close sidebar on mobile
+                              setIsSidebarOpen(false)
                             }}
                           >
                             {isAdmin && (
@@ -772,6 +823,8 @@ export default function CourseDetailPage() {
                                     setEditingLesson(null)
                                     // Save to cookie
                                     Cookies.set(`last-lesson-${courseId}`, lesson.id, { expires: 30 })
+                                    // Close sidebar on mobile
+                                    setIsSidebarOpen(false)
                                   }}
                                 >
                                   {isAdmin && (
@@ -844,9 +897,9 @@ export default function CourseDetailPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 bg-white">
+        <div className="flex-1 bg-white overflow-y-auto">
           {selectedLesson || editingLesson ? (
-            <div className="max-w-4xl mx-auto p-8">
+            <div className="max-w-4xl mx-auto p-4 md:p-8">
               {(() => {
                 const currentLesson = lessons.find(l => l.id === (editingLesson || selectedLesson))
                 if (!currentLesson) return null
@@ -859,7 +912,7 @@ export default function CourseDetailPage() {
                         type="text"
                         value={editingTitle}
                         onChange={(e) => setEditingTitle(e.target.value)}
-                        className="text-2xl font-bold mb-4 w-full border-0 outline-none focus:ring-0"
+                        className="text-xl sm:text-2xl font-bold mb-4 w-full border-0 outline-none focus:ring-0"
                         placeholder="Page title"
                       />
                       
@@ -870,7 +923,7 @@ export default function CourseDetailPage() {
                       />
                       
                       <div className="flex items-center justify-end mt-6 pt-6 border-t">
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
                           <div className="flex items-center gap-2">
                             <span className="text-sm">Published</span>
                             <Switch
@@ -904,9 +957,9 @@ export default function CourseDetailPage() {
                 // View mode
                 return (
                   <>
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                       <div className="flex items-center gap-3">
-                        <h1 className="text-3xl font-bold">{currentLesson.title}</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold">{currentLesson.title}</h1>
                         {currentLesson.is_draft && isAdmin && (
                           <span className="px-2 py-1 text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
                             DRAFT

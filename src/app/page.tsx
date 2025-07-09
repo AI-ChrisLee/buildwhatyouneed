@@ -246,16 +246,11 @@ function HomePageContent() {
               {/* Main Preview */}
               {/* VSL Video Section */}
               <div className="rounded-xl overflow-hidden relative aspect-[16/9] bg-black transition-all hover:shadow-xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800">
-                  {/* Placeholder for Wistia video - will be replaced with actual content */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+                <iframe 
+                  src="https://www.loom.com/embed/f48226d6625f4986bea2f6a3167fb75c?sid=f8e19d3c-a84a-4623-966d-75912e4ef63d" 
+                  allowFullScreen 
+                  className="absolute top-0 left-0 w-full h-full border-0"
+                />
               </div>
             </div>
 
@@ -266,7 +261,7 @@ function HomePageContent() {
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-3">Recent members</h3>
                 <div className="flex -space-x-2">
-                  {recentMembers.slice(0, 10).map((member, index) => (
+                  {recentMembers.slice(0, 10).map((member) => (
                     <div key={member.id} className="relative group">
                       <AvatarGradient 
                         seed={member.email} 
@@ -450,7 +445,7 @@ function HomePageContent() {
           </div>
           
           {/* Right Column - Community Badge */}
-          <aside className="w-full lg:w-[320px] shrink-0 mt-8 lg:mt-0">
+          <aside className="hidden lg:block w-full lg:w-[320px] shrink-0 mt-8 lg:mt-0">
             <div className="lg:sticky lg:top-[90px]">
               <CommunityBadge />
             </div>

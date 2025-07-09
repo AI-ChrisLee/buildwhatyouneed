@@ -140,7 +140,7 @@ export function CommunityBadge() {
         </div>
         
         <p className="text-sm">
-          Join Control OS
+          We Build Micro SaaS with AI to Take Back Control
         </p>
         
         {/* Links */}
