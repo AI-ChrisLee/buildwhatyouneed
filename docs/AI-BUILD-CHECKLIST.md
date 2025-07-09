@@ -8,8 +8,6 @@
 3. **Focus on YOUR Needs**: Build what YOU need, not what everyone needs
 4. **Use AI Aggressively**: Let Claude/GPT write 80% of code
 5. **Ship Daily**: Deploy every day, even if broken
-6. **Document Everything**: Future you will thank you
-7. **Share Progress**: Build in public for accountability
 
 ---
 
@@ -42,12 +40,30 @@
 - [ ] Open Cursor IDE
 - [ ] Install Claude Code extension
 - [ ] Create CLAUDE.md with project context
-- [ ] Create new project folder
-- [ ] Initialize git repository
 
-### Tech Stack Setup (1 hour)
-Make highlevel check point
-UI, Database, Backend Polish
+```
+7 Claude rules
+1. First think through the problem, read the codebase for relevant files, and write a plan to tasks/todo.md.
+2. The plan should have a list of todo items that you can check off as you complete them
+3. Before you begin working, check in with me and I will verify the plan.
+4. Then, begin working on the todo items, marking them as complete as you go.
+5. Please every step of the way just give me a high level explanation of what changes you made
+6. Make every task and code change you do as simple as possible. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity.
+7. Finally, add a review section to the [todo.md](http://todo.md/) file with a summary of the changes you made and any other relevant information.
+```
+- [ ] Create new project folder
+
+```
+“I’m looking to build a simple [community platform like skool]
+
+User flow : 
+Landingpage > ...
+
+I’d like it to be built with nextjs. shadcn/ui. before we start building this out though, I want to do a little planning with you. I first want you to make a project plan for this. 
+
+Inside @tasks/todo.md.please build an in depth plan for the app. Have high level checkpoints for each major step and feature, then in each checkpoint have a broken down list of small tasks you'll need to do to complete that checkpoint. Also in this plan include instructions we will give to a marketing background agent, a Researcher agent that will research user needs, and a feature planning agent that will plan the roadmap for us. We will then review this plan together. order is same. 
+5 stage : Project setting > UI basic > Database > Backend > polishing / publising. You already have our @tasks/PRD.md. but follow this 5 stage.
+```
 
 ---
 
