@@ -140,7 +140,7 @@ export function CommunityBadge() {
         </div>
         
         <p className="text-sm">
-          We kill SaaS with vibe coding. Every Saturday, watch us build replacements for tools you're sick of paying for.
+          Join Control OS
         </p>
         
         {/* Links */}
