@@ -63,9 +63,9 @@ export default function CalendarPage() {
           <div>
             <h2 className="text-base font-semibold mb-4">Regular Schedule</h2>
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border bg-muted/30">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg border bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -73,7 +73,7 @@ export default function CalendarPage() {
                     <p className="text-sm text-muted-foreground">10:00 AM PST</p>
                   </div>
                 </div>
-                <Button asChild size="sm" className="w-full sm:w-auto">
+                <Button asChild size="sm" className="w-full sm:w-auto min-h-[44px]">
                 <a 
                   href="https://us06web.zoom.us/j/84785094939?pwd=QyTEFX9rtAgnPyTnULLUCMux8aMnVV.1" 
                   target="_blank" 
@@ -87,9 +87,9 @@ export default function CalendarPage() {
               </Button>
             </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border bg-muted/30">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg border bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -97,7 +97,7 @@ export default function CalendarPage() {
                     <p className="text-sm text-muted-foreground">2:00 PM PST</p>
                   </div>
                 </div>
-                <Button asChild size="sm" className="w-full sm:w-auto">
+                <Button asChild size="sm" className="w-full sm:w-auto min-h-[44px]">
                 <a 
                   href="https://us06web.zoom.us/j/84104834932?pwd=ocd6IktbJbcL04d7ew5EL8iCbCMETI.1" 
                   target="_blank" 
@@ -160,7 +160,7 @@ export default function CalendarPage() {
           {/* This Week Calendar View */}
           <div>
             <h2 className="text-base font-semibold mb-4">This Week</h2>
-            <div className="grid grid-cols-7 gap-1 sm:gap-2">
+            <div className="grid grid-cols-7 gap-1">
               {weekDays.map((day, idx) => {
                 const dayOfWeek = day.getDay()
                 const hasOfficeHour = (dayOfWeek === 1 || dayOfWeek === 4) // Monday or Thursday
@@ -170,20 +170,20 @@ export default function CalendarPage() {
                   <div
                     key={idx}
                     className={`
-                      p-2 sm:p-3 rounded-lg text-center transition-colors
+                      p-2 sm:p-3 rounded-lg text-center transition-colors min-h-[60px] sm:min-h-[80px]
                       ${isToday ? 'bg-primary text-primary-foreground' : 'bg-muted/30'}
                       ${hasOfficeHour && !isToday ? 'border-2 border-primary/30' : ''}
                     `}
                   >
-                    <p className="text-xs font-medium">
+                    <p className="text-[10px] sm:text-xs font-medium">
                       {format(day, 'EEE')}
                     </p>
-                    <p className="text-sm sm:text-lg font-semibold mt-1">
+                    <p className="text-sm sm:text-lg font-semibold">
                       {format(day, 'd')}
                     </p>
                     {hasOfficeHour && (
-                      <div className="mt-1">
-                        <div className="text-xs">
+                      <div className="mt-0.5 sm:mt-1">
+                        <div className="text-[10px] sm:text-xs">
                           {dayOfWeek === 1 ? '10 AM' : '2 PM'}
                         </div>
                       </div>

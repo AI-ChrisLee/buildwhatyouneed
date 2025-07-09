@@ -144,7 +144,7 @@ function PaymentForm({ user, onSuccess }: { user: any; onSuccess: () => void }) 
       </Button>
 
       <p className="text-xs text-gray-500 text-center">
-        By joining, you accept Build What You Need's terms. You can cancel anytime.
+        By joining, you accept Control OS's terms. You can cancel anytime.
       </p>
     </form>
   )
@@ -157,10 +157,10 @@ export default function PaymentModal({ open, onOpenChange, user }: PaymentModalP
         <DialogHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">B</span>
+              <span className="text-white text-2xl font-bold">C</span>
             </div>
           </div>
-          <DialogTitle className="text-xl font-semibold">Build What You Need</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Control OS</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-2">
             Complete your payment to unlock all premium features
           </DialogDescription>

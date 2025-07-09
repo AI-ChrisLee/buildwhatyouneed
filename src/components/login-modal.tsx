@@ -59,16 +59,16 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
         // Refresh auth context
         await refreshAuth()
         
-        // Use router.push instead of window.location for smoother navigation
-        if ((subscriptions && subscriptions.length > 0) || userData?.is_admin) {
+        // Use window.location.href for hard navigation to ensure middleware runs
+        if ((subscriptions && subscriptions.length > 0) || userData?.is_admin || userData?.membership_tier === 'paid') {
           // Paid member or admin - go to threads
-          router.push('/threads')
+          window.location.href = '/threads'
         } else if (userData?.membership_tier === 'free') {
           // Free tier user - go to classroom
-          router.push('/classroom')
+          window.location.href = '/classroom'
         } else {
-          // No subscription, no tier - go to home page
-          router.push('/')
+          // No subscription, no tier - stay on current page
+          window.location.reload()
         }
       }
     } catch (error: any) {

@@ -6,6 +6,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { AvatarGradient } from "@/components/ui/avatar-gradient"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { 
@@ -44,6 +45,7 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
   const [canDelete, setCanDelete] = useState(false)
   const [isActioning, setIsActioning] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUser, setCurrentUser] = useState<{ email: string; profile_image_url?: string } | null>(null)
   const router = useRouter()
   
   const categoryLabels = {
@@ -73,6 +75,19 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     setCurrentUserId(user?.id || null)
+    
+    if (user) {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('profile_image_url')
+        .eq('id', user.id)
+        .single()
+      
+      setCurrentUser({
+        email: user.email || '',
+        profile_image_url: userData?.profile_image_url
+      })
+    }
   }
   
   async function fetchComments() {
@@ -167,29 +182,33 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="max-w-4xl w-[95vw] sm:w-full max-h-[90vh] overflow-hidden flex flex-col p-0">
         <VisuallyHidden>
           <DialogTitle>{thread?.title || 'Thread details'}</DialogTitle>
         </VisuallyHidden>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 pb-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 pb-0">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback>
-                {thread.author?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || thread.author?.email?.[0]?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
+            {thread.author?.profile_image_url ? (
+              <img 
+                src={thread.author.profile_image_url} 
+                alt={thread.author?.full_name || 'User'}
+                className="h-10 w-10 rounded-full object-cover" 
+              />
+            ) : (
+              <AvatarGradient 
+                seed={thread.author?.email || thread.author_id} 
+                className="h-10 w-10" 
+              />
+            )}
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                 <p className="font-medium">{thread.author?.full_name || thread.author?.email?.split('@')[0] || 'Unknown'}</p>
-                {thread.author?.founding_number && (
-                  <>
-                    <span className="text-muted-foreground">|</span>
-                    <span className="font-bold text-sm">#{String(thread.author.founding_number).padStart(4, '0')}</span>
-                  </>
+                {thread.author?.bio && (
+                  <span className="text-sm text-muted-foreground sm:before:content-['•'] sm:before:mr-2">{thread.author.bio}</span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                 <span>{formatDistanceToNow(new Date(thread.created_at), { addSuffix: true })}</span>
                 <span>•</span>
                 <Badge variant="secondary" className="text-xs">
@@ -234,7 +253,7 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Thread Title */}
             <h1 className="text-2xl font-bold mb-4">{thread.title}</h1>
             
@@ -267,21 +286,22 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
                       <Card key={comment.id}>
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-xs">
-                                {comment.author?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || comment.author?.email?.[0]?.toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
+                            {comment.author?.profile_image_url ? (
+                              <img 
+                                src={comment.author.profile_image_url} 
+                                alt={comment.author?.full_name || 'User'}
+                                className="h-8 w-8 rounded-full object-cover" 
+                              />
+                            ) : (
+                              <AvatarGradient 
+                                seed={comment.author?.email || comment.author_id} 
+                                className="h-8 w-8" 
+                              />
+                            )}
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <p className="font-medium text-sm">{comment.author?.full_name || comment.author?.email?.split('@')[0] || 'Unknown'}</p>
-                                  {comment.author?.founding_number && (
-                                    <>
-                                      <span className="text-muted-foreground text-xs">|</span>
-                                      <span className="font-bold text-xs">#{String(comment.author.founding_number).padStart(4, '0')}</span>
-                                    </>
-                                  )}
                                   <span className="text-xs text-muted-foreground">• {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</span>
                                 </div>
                                 {canDeleteThisComment && (
@@ -325,13 +345,20 @@ export function ThreadDetailDialog({ thread, open, onOpenChange }: ThreadDetailD
         </div>
 
         {/* Add comment form */}
-        <div className="border-t p-6">
+        <div className="border-t p-4 sm:p-6">
           <form onSubmit={handleAddComment} className="flex items-start gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-xs">
-                <User className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
+            {currentUser?.profile_image_url ? (
+              <img 
+                src={currentUser.profile_image_url} 
+                alt="Your profile"
+                className="h-8 w-8 rounded-full object-cover" 
+              />
+            ) : (
+              <AvatarGradient 
+                seed={currentUser?.email || ''} 
+                className="h-8 w-8" 
+              />
+            )}
             <div className="flex-1">
               <Input
                 value={commentText}

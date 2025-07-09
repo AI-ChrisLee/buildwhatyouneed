@@ -33,29 +33,7 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = ['/', '/terms', '/privacy']
   const isPublicRoute = publicRoutes.includes(pathname)
   
-  // If user is accessing root and is authenticated with subscription, redirect to appropriate page
-  if (pathname === '/' && user) {
-    // Check if user has active subscription
-    const { data: subscription } = await supabase
-      .from('stripe_subscriptions')
-      .select('status')
-      .eq('user_id', user.id)
-      .in('status', ['active', 'trialing', 'incomplete'])
-      .maybeSingle()
-    
-    // Check if user is admin or tier
-    const { data: userData } = await supabase
-      .from('users')
-      .select('is_admin, membership_tier')
-      .eq('id', user.id)
-      .single()
-    
-    if (subscription || userData?.is_admin || userData?.membership_tier === 'paid') {
-      return NextResponse.redirect(new URL('/threads', request.url))
-    } else if (userData?.membership_tier === 'free') {
-      return NextResponse.redirect(new URL('/classroom', request.url))
-    }
-  }
+  // Don't redirect logged-in users from homepage anymore - they can view it too
   
   // If it's a public route, just return the response without auth checks
   if (isPublicRoute) {

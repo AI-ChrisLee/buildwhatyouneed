@@ -46,7 +46,7 @@ export default function LoginPage() {
           .single()
         
         // Force a hard navigation to ensure middleware runs
-        if ((subscriptions && subscriptions.length > 0) || userData?.is_admin) {
+        if ((subscriptions && subscriptions.length > 0) || userData?.is_admin || userData?.membership_tier === 'paid') {
           // Paid member or admin - go to threads
           window.location.href = '/threads'
         } else if (userData?.membership_tier === 'free') {

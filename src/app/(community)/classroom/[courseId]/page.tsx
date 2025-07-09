@@ -124,6 +124,33 @@ export default function CourseDetailPage() {
           router.push('/classroom')
           return
         }
+        
+        // Check course access for non-free courses
+        if (!courseData.is_free && !userIsAdmin) {
+          // Check if user has paid membership or active subscription
+          const { data: userData } = await supabase
+            .from('users')
+            .select('membership_tier')
+            .eq('id', user.id)
+            .single()
+          
+          const { data: subscription } = await supabase
+            .from('stripe_subscriptions')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .limit(1)
+            .single()
+          
+          const hasPaidAccess = userData?.membership_tier === 'paid' || !!subscription
+          
+          if (!hasPaidAccess) {
+            // Redirect to classroom with message
+            router.push('/classroom?upgrade=true')
+            return
+          }
+        }
+        
         setCourse(courseData)
       }
 
@@ -136,12 +163,19 @@ export default function CourseDetailPage() {
 
       setModules(modulesData || [])
 
-      // Load lessons
-      const { data: lessonsData } = await supabase
+      // Load lessons - filter out drafts for non-admins
+      let lessonsQuery = supabase
         .from('lessons')
         .select('*')
         .eq('course_id', courseId)
         .order('order_index')
+      
+      // Non-admins should only see published lessons
+      if (!userIsAdmin) {
+        lessonsQuery = lessonsQuery.eq('is_draft', false)
+      }
+      
+      const { data: lessonsData } = await lessonsQuery
 
       setLessons(lessonsData || [])
       

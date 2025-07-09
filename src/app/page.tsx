@@ -9,6 +9,7 @@ import { ProtectedNavBar } from "@/components/protected-navbar"
 import Link from "next/link"
 import { useState, useEffect, Suspense, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/providers/auth-provider"
 import { isCurrentUserAdmin } from "@/lib/supabase/admin-actions"
 import PaymentModal from "@/components/payment-modal"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -28,64 +29,61 @@ function HomePageContent() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showFreeSignupModal, setShowFreeSignupModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
-  const [user, setUser] = useState<any>(null)
   const [checkingPayment, setCheckingPayment] = useState(false)
   const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'none' | 'active' | 'past_due'>('loading')
   const [showFloatingCTA, setShowFloatingCTA] = useState(true)
   const offerSectionRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user, loading: authLoading } = useAuth()
+  const supabase = createClient()
   const content = {
     title: "We Build Micro SaaS with AI to Take Back Control",
     titleSecondLine: "",
     subtitle: "Use AI to build your own in a week. Own everything."
   }
-  const supabase = createClient()
 
   useEffect(() => {
     checkAdminStatus()
     fetchRealStats()
-    checkUser()
     setLoading(false)
   }, [])
+  
+  useEffect(() => {
+    if (!authLoading && user) {
+      checkSubscriptionStatus()
+    } else if (!authLoading && !user) {
+      setSubscriptionStatus('none')
+    }
+  }, [authLoading, user])
 
   async function checkAdminStatus() {
     const adminStatus = await isCurrentUserAdmin()
     setIsAdmin(adminStatus)
   }
 
-  async function checkUser() {
-    const { data: { user } } = await supabase.auth.getUser()
-    setUser(user)
+  async function checkSubscriptionStatus() {
+    if (!user) {
+      setSubscriptionStatus('none')
+      return
+    }
     
-    if (user) {
-      // Check subscription status
-      const { data: subscriptions } = await supabase
-        .from('stripe_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-      
-      if (subscriptions && subscriptions.length > 0) {
-        setSubscriptionStatus('active')
-      } else {
-        setSubscriptionStatus('none')
-      }
+    // Check subscription status
+    const { data: subscriptions } = await supabase
+      .from('stripe_subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+    
+    if (subscriptions && subscriptions.length > 0) {
+      setSubscriptionStatus('active')
     } else {
       setSubscriptionStatus('none')
     }
   }
 
-  // Subscribe to auth changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
 
   // Handle scroll to hide floating CTA when reaching offer section
   useEffect(() => {
@@ -166,7 +164,7 @@ function HomePageContent() {
   }
 
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <p className="text-muted-foreground">Loading...</p>
@@ -179,29 +177,21 @@ function HomePageContent() {
       <ProtectedNavBar />
       
       {/* Floating CTA - Mobile Only */}
-      <div className={`fixed bottom-0 left-0 right-0 z-40 pt-16 pb-4 px-4 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none sm:hidden transition-all duration-300 ${
-        showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-      }`}>
-        <div className="pointer-events-auto">
-          {!user ? (
+      {subscriptionStatus !== 'active' && (
+        <div className={`fixed bottom-0 left-0 right-0 z-40 pt-8 pb-4 px-4 bg-gradient-to-t from-white via-white to-transparent pointer-events-none sm:hidden transition-all duration-300 ${
+          showFloatingCTA ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+        }`}>
+          <div className="pointer-events-auto">
             <Button 
-              onClick={() => setShowFreeSignupModal(true)}
+              onClick={user ? () => setShowPaymentModal(true) : () => setShowFreeSignupModal(true)}
               className="w-full bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
               size="lg"
             >
-              Join Control OS
+              {user && subscriptionStatus === 'none' ? 'Get Full Access' : 'Join Control OS'}
             </Button>
-          ) : user && subscriptionStatus === 'none' && !isAdmin ? (
-            <Button 
-              onClick={() => setShowPaymentModal(true)}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white shadow-lg"
-              size="lg"
-            >
-              Upgrade Now
-            </Button>
-          ) : null}
+          </div>
         </div>
-      </div>
+      )}
       {/* Admin Edit Button */}
       {isAdmin && (
         <div className="border-b">
@@ -260,12 +250,12 @@ function HomePageContent() {
             {recentMembers.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-3">Recent members</h3>
-                <div className="flex -space-x-2">
+                <div className="flex -space-x-1 sm:-space-x-2">
                   {recentMembers.slice(0, 10).map((member) => (
                     <div key={member.id} className="relative group">
                       <AvatarGradient 
                         seed={member.email} 
-                        className="h-10 w-10 rounded-full border-2 border-background ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2 group-hover:ring-offset-background group-hover:scale-110"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 border-background ring-0 transition-all group-hover:ring-2 group-hover:ring-ring group-hover:ring-offset-2 group-hover:ring-offset-background group-hover:scale-110"
                       />
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 whitespace-nowrap transition-all">
                         {member.full_name || member.email?.split('@')[0]}
@@ -273,8 +263,8 @@ function HomePageContent() {
                     </div>
                   ))}
                   {realStats.memberCount > 10 && (
-                    <div className="h-10 w-10 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                      <span className="text-xs text-muted-foreground">+{realStats.memberCount - 10}</span>
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">+{realStats.memberCount - 10}</span>
                     </div>
                   )}
                 </div>
@@ -394,44 +384,15 @@ function HomePageContent() {
                     </ul>
                   </div>
                 </div>
-                {user && subscriptionStatus === 'active' ? (
+                {user && subscriptionStatus === 'active' ? null : (
+                  // Not logged in or no subscription - show paid CTA
                   <Button 
-                    onClick={() => router.push('/threads')} 
-                    size="lg" 
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium"
-                  >
-                    Enter The War Room
-                  </Button>
-                ) : user ? (
-                  // Logged in but no subscription
-                  <div className="space-y-3">
-                    <Button 
-                      onClick={() => router.push('/classroom')} 
-                      size="lg" 
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium"
-                      disabled={checkingPayment}
-                    >
-                      {checkingPayment ? 'Loading...' : 'Join Control OS'}
-                    </Button>
-                    <Button 
-                      onClick={handleJoinClick} 
-                      size="lg" 
-                      variant="outline"
-                      className="w-full border-gray-900 text-gray-900 hover:bg-gray-100 h-14 text-base font-medium"
-                      disabled={checkingPayment}
-                    >
-                      Join Control OS ($97/mo)
-                    </Button>
-                  </div>
-                ) : (
-                  // Not logged in - only show free access
-                  <Button 
-                    onClick={() => setShowFreeSignupModal(true)} 
+                    onClick={user ? handleJoinClick : () => setShowFreeSignupModal(true)} 
                     size="lg" 
                     className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
                     disabled={checkingPayment}
                   >
-                    {checkingPayment ? 'Loading...' : 'Join Control OS'}
+                    {checkingPayment ? 'Loading...' : (user && subscriptionStatus === 'none' ? 'Get Full Access' : 'Join Control OS')}
                   </Button>
                 )}
                 <p className="text-sm text-muted-foreground text-center">

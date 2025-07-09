@@ -32,7 +32,7 @@ function ThreadsPageContent() {
   const [threads, setThreads] = useState<ThreadWithAuthor[]>([])
   const [loading, setLoading] = useState(true)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
-  const [user, setUser] = useState<{ email: string; name: string } | null>(null)
+  const [user, setUser] = useState<{ email: string; name: string; profile_image_url?: string } | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const { MembershipGate, AccessDeniedModal, membershipTier, hasAccess, checkMembership } = useMembership()
@@ -45,13 +45,14 @@ function ThreadsPageContent() {
       if (authUser) {
         const { data: userData } = await supabase
           .from('users')
-          .select('full_name')
+          .select('full_name, profile_image_url')
           .eq('id', authUser.id)
           .single()
         
         setUser({
           email: authUser.email || '',
-          name: userData?.full_name || authUser.email?.split('@')[0] || 'User'
+          name: userData?.full_name || authUser.email?.split('@')[0] || 'User',
+          profile_image_url: userData?.profile_image_url
         })
       }
     }
@@ -128,7 +129,15 @@ function ThreadsPageContent() {
               className="flex items-center gap-3 p-4 bg-background rounded-lg cursor-pointer border shadow-sm hover:shadow-md transition-all"
             >
               {user ? (
-                <AvatarGradient seed={user.email} className="h-10 w-10 shrink-0" />
+                user.profile_image_url ? (
+                  <img 
+                    src={user.profile_image_url} 
+                    alt={user.name}
+                    className="h-10 w-10 rounded-full shrink-0 object-cover" 
+                  />
+                ) : (
+                  <AvatarGradient seed={user.email} className="h-10 w-10 shrink-0" />
+                )
               ) : (
                 <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
                   <MessageSquare className="h-5 w-5 text-muted-foreground" />
@@ -138,14 +147,14 @@ function ThreadsPageContent() {
             </div>
 
             {/* Category tabs */}
-            <div className="overflow-x-auto">
+            <div className="-mx-4 md:mx-0 overflow-x-auto">
               <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-                <TabsList className="h-10 p-1 bg-transparent border-0 w-full sm:w-auto">
+                <TabsList className="h-10 p-1 bg-transparent border-0 w-max min-w-full sm:w-auto px-4 md:px-0">
                   {categories.map((category) => (
                     <TabsTrigger
                       key={category.id}
                       value={category.id}
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 md:px-4 text-xs md:text-sm whitespace-nowrap"
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 sm:px-3 md:px-4 text-xs sm:text-sm whitespace-nowrap flex-1 sm:flex-initial"
                     >
                       {category.label}
                     </TabsTrigger>
@@ -157,7 +166,7 @@ function ThreadsPageContent() {
         </div>
 
         {/* Main content */}
-        <div className="px-6 py-6">
+        <div className="px-4 md:px-6 py-4 md:py-6">
           {/* Success message */}
           {showSuccessMessage && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -168,7 +177,7 @@ function ThreadsPageContent() {
           )}
 
           {/* Threads list */}
-          <div className="space-y-0 divide-y">
+          <div className="space-y-3">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">

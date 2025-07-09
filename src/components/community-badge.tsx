@@ -200,7 +200,7 @@ export function CommunityBadge() {
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="lg"
           >
-            Upgrade to Premium
+            Get Full Access
           </Button>
         ) : null}
       </div>

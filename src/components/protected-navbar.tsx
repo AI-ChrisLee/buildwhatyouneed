@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Search, User, LogOut, Key } from "lucide-react"
+import { Search, User, LogOut, Key, Menu } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,15 +15,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/providers/auth-provider"
 import { SignupModal } from "@/components/signup-modal"
 import { LoginModal } from "@/components/login-modal"
 import { AvatarGradient } from "@/components/ui/avatar-gradient"
+import { Button } from "@/components/ui/button"
 import PaymentModal from "@/components/payment-modal"
 
 export function ProtectedNavBar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState<{ email: string; name: string; isAdmin?: boolean; hasSubscription?: boolean; membershipTier?: string } | null>(null)
+  const { user: authUser } = useAuth()
+  const [userDetails, setUserDetails] = useState<{ email: string; name: string; isAdmin?: boolean; hasSubscription?: boolean; membershipTier?: string; profileImageUrl?: string } | null>(null)
   const [showSignupModal, setShowSignupModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -33,16 +36,16 @@ export function ProtectedNavBar() {
     { label: "Threads", href: "/threads", protected: true, requiresPaid: true },
     { label: "Classroom", href: "/classroom", protected: true, requiresPaid: false },
     { label: "Calendar", href: "/calendar", protected: true, requiresPaid: true },
+    { label: "About", href: "/", protected: false, requiresPaid: false },
   ]
   
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+    const getUserDetails = async () => {
       if (authUser) {
         // Get user details from the users table
         const { data: userData } = await supabase
           .from('users')
-          .select('full_name, is_admin, membership_tier')
+          .select('full_name, is_admin, membership_tier, profile_image_url')
           .eq('id', authUser.id)
           .single()
         
@@ -54,29 +57,21 @@ export function ProtectedNavBar() {
           .in('status', ['active', 'trialing', 'incomplete'])
           .limit(1)
         
-        setUser({
+        setUserDetails({
           email: authUser.email || '',
           name: userData?.full_name || authUser.email?.split('@')[0] || 'User',
           isAdmin: userData?.is_admin || false,
           hasSubscription: (subscriptions && subscriptions.length > 0) || userData?.is_admin || userData?.membership_tier === 'paid' || false,
-          membershipTier: userData?.membership_tier || null
+          membershipTier: userData?.membership_tier || null,
+          profileImageUrl: userData?.profile_image_url || null
         })
+      } else {
+        setUserDetails(null)
       }
     }
     
-    getUser()
-    
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        getUser()
-      } else {
-        setUser(null)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [supabase])
+    getUserDetails()
+  }, [authUser, supabase])
   
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -84,14 +79,14 @@ export function ProtectedNavBar() {
   }
 
   const handleNavClick = (e: React.MouseEvent, item: { href: string; protected: boolean; requiresPaid?: boolean }) => {
-    if (item.protected && !user) {
+    if (item.protected && !userDetails) {
       e.preventDefault()
       setShowSignupModal(true)
-    } else if (item.requiresPaid && user && !user.hasSubscription) {
+    } else if (item.requiresPaid && userDetails && !userDetails.hasSubscription) {
       e.preventDefault()
       // User is logged in but no subscription - show payment modal
       setShowPaymentModal(true)
-    } else if (!item.requiresPaid && user && user.membershipTier === 'free') {
+    } else if (!item.requiresPaid && userDetails && userDetails.membershipTier === 'free') {
       // Free users can access classroom - let them through
       return
     }
@@ -112,7 +107,7 @@ export function ProtectedNavBar() {
                 className="w-8 h-8"
                 priority
               />
-              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">Control OS</span>
+              <span className="font-semibold text-base md:text-lg">Control OS</span>
             </Link>
 
             {/* Navigation - Desktop */}
@@ -124,26 +119,7 @@ export function ProtectedNavBar() {
                   onClick={(e) => handleNavClick(e, item)}
                   className={cn(
                     "px-3 py-2 text-sm font-medium transition-colors rounded-md",
-                    pathname.startsWith(item.href)
-                      ? "bg-muted text-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Navigation - Mobile */}
-            <nav className="flex md:hidden items-center gap-1 ml-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={(e) => handleNavClick(e, item)}
-                  className={cn(
-                    "px-2 py-1.5 text-xs font-medium transition-colors rounded-md",
-                    pathname.startsWith(item.href)
+                    (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))
                       ? "bg-muted text-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
@@ -156,28 +132,36 @@ export function ProtectedNavBar() {
             {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Profile */}
-            <div className="flex items-center">
-              {user ? (
+            {/* Desktop Profile */}
+            <div className="hidden md:flex items-center">
+              {userDetails ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="rounded-full overflow-hidden ring-offset-background transition-all hover:ring-2 hover:ring-ring hover:ring-offset-2">
-                      <AvatarGradient seed={user.email} className="h-8 w-8" />
+                      {userDetails.profileImageUrl ? (
+                        <img 
+                          src={userDetails.profileImageUrl} 
+                          alt={userDetails.name}
+                          className="h-8 w-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <AvatarGradient seed={userDetails.email} className="h-8 w-8" />
+                      )}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-sm font-medium leading-none">{userDetails.name}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {user.email}
+                          {userDetails.email}
                         </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push('/settings/password')}>
+                    <DropdownMenuItem onClick={() => router.push('/settings')}>
                       <Key className="mr-2 h-4 w-4" />
-                      <span>Change Password</span>
+                      <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
@@ -196,6 +180,84 @@ export function ProtectedNavBar() {
                   </div>
                 </button>
               )}
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="flex md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {/* User Info / Login */}
+                  {userDetails ? (
+                    <>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex items-center gap-3">
+                          {userDetails.profileImageUrl ? (
+                            <img 
+                              src={userDetails.profileImageUrl} 
+                              alt={userDetails.name}
+                              className="h-8 w-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <AvatarGradient seed={userDetails.email} className="h-8 w-8" />
+                          )}
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{userDetails.name}</p>
+                            <p className="text-xs leading-none text-muted-foreground">
+                              {userDetails.email}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem onClick={() => setShowLoginModal(true)}>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Log in</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  
+                  {/* Navigation Items */}
+                  {navItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        href={item.href}
+                        onClick={(e) => handleNavClick(e, item)}
+                        className={cn(
+                          (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))
+                            ? "bg-muted"
+                            : ""
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  
+                  {/* User Actions */}
+                  {userDetails && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push('/settings')}>
+                        <Key className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -226,7 +288,7 @@ export function ProtectedNavBar() {
       <PaymentModal
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
-        user={user}
+        user={authUser}
       />
     </>
   )

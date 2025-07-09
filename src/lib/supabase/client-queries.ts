@@ -6,6 +6,8 @@ interface User {
   full_name: string | null
   is_admin: boolean
   membership_tier: string
+  profile_image_url: string | null
+  bio: string | null
   created_at: string
   updated_at: string
 }
