@@ -128,24 +128,30 @@ export default function CourseDetailPage() {
         // Check course access for non-free courses
         if (!courseData.is_free && !userIsAdmin) {
           // Check if user has paid membership or active subscription
-          const { data: userData } = await supabase
-            .from('users')
-            .select('membership_tier')
-            .eq('id', user.id)
-            .single()
-          
-          const { data: subscription } = await supabase
-            .from('stripe_subscriptions')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .limit(1)
-            .single()
-          
-          const hasPaidAccess = userData?.membership_tier === 'paid' || !!subscription
-          
-          if (!hasPaidAccess) {
-            // Redirect to classroom with message
+          if (user) {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('membership_tier')
+              .eq('id', user.id)
+              .single()
+            
+            const { data: subscription } = await supabase
+              .from('stripe_subscriptions')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('status', 'active')
+              .limit(1)
+              .single()
+            
+            const hasPaidAccess = userData?.membership_tier === 'paid' || !!subscription
+            
+            if (!hasPaidAccess) {
+              // Redirect to classroom with message
+              router.push('/classroom?upgrade=true')
+              return
+            }
+          } else {
+            // No user logged in, redirect to classroom
             router.push('/classroom?upgrade=true')
             return
           }

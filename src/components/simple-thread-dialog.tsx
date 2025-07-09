@@ -160,9 +160,10 @@ export function SimpleThreadDialog({ open, onOpenChange, onThreadCreated }: Simp
     }
   }
 
-  function handleAddLink(url: string, text: string) {
+  function handleAddLink(url: string, text?: string) {
     // Add URL to content with markdown format
-    setContent(content + (content ? '\n\n' : '') + `[${text}](${url})`)
+    const linkText = text || url
+    setContent(content + (content ? '\n\n' : '') + `[${linkText}](${url})`)
     
     // Check for video embeds
     const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?]+)/)
