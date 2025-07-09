@@ -30,7 +30,7 @@ export function LessonContent({ content }: LessonContentProps) {
           const embedHtml = getVideoEmbed(href)
           if (embedHtml) {
             const embedContainer = document.createElement('div')
-            embedContainer.className = 'my-6'
+            embedContainer.className = 'my-6 border border-gray-200 rounded-lg p-1'
             embedContainer.innerHTML = embedHtml
             parent.parentNode?.replaceChild(embedContainer, parent)
           }
@@ -47,7 +47,7 @@ export function LessonContent({ content }: LessonContentProps) {
         <div class="relative" style="padding-bottom: 56.25%;">
           <iframe
             src="https://www.youtube.com/embed/${youtubeMatch[1]}"
-            class="absolute inset-0 w-full h-full rounded-lg"
+            class="absolute inset-0 w-full h-full rounded-md"
             frameborder="0"
             allowfullscreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -63,7 +63,7 @@ export function LessonContent({ content }: LessonContentProps) {
         <div class="relative" style="padding-bottom: 56.25%;">
           <iframe
             src="https://www.loom.com/embed/${loomMatch[1]}"
-            class="absolute inset-0 w-full h-full rounded-lg"
+            class="absolute inset-0 w-full h-full rounded-md"
             frameborder="0"
             allowfullscreen
           ></iframe>
@@ -78,7 +78,7 @@ export function LessonContent({ content }: LessonContentProps) {
         <div class="relative" style="padding-bottom: 56.25%;">
           <iframe
             src="https://player.vimeo.com/video/${vimeoMatch[1]}"
-            class="absolute inset-0 w-full h-full rounded-lg"
+            class="absolute inset-0 w-full h-full rounded-md"
             frameborder="0"
             allowfullscreen
           ></iframe>

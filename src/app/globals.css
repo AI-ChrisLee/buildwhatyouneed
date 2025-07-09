@@ -117,3 +117,29 @@
 .lesson-content em {
   @apply italic;
 }
+
+/* Callout box styles */
+.callout-box {
+  @apply relative bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6 my-6 shadow-lg hover:shadow-xl transition-shadow duration-300;
+}
+
+.callout-box::before {
+  content: '👀';
+  @apply absolute -top-3 left-6 bg-white px-2 text-2xl;
+}
+
+.callout-box-title {
+  @apply text-lg font-bold text-gray-800 mb-2;
+}
+
+.callout-box-content {
+  @apply text-gray-700;
+}
+
+.callout-box-link {
+  @apply inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 font-medium mt-3;
+}
+
+.callout-box-link:hover {
+  @apply transform scale-105;
+}

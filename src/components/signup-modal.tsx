@@ -16,7 +16,7 @@ interface SignupModalProps {
   onLoginClick?: () => void
 }
 
-export function SignupModal({ open, onOpenChange, communityName = "The SaaS Genocide", onLoginClick }: SignupModalProps) {
+export function SignupModal({ open, onOpenChange, communityName = "Control OS", onLoginClick }: SignupModalProps) {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")

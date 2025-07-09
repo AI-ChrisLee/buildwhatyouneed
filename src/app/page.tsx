@@ -40,7 +40,7 @@ function HomePageContent() {
     title: "We Kill SaaS",
     titleSecondLine: "with Vibe Coding",
     subtitle: "Former agency owner ($600K/year) now leading a movement of entrepreneurs who build what they rent. Because the best ROI is infinite—when you own everything.",
-    personalMission: "Join The SaaS Genocide. Own your tools instead of renting them.",
+    personalMission: "Join Control OS. Own your tools instead of renting them.",
     mainDescription: "A community of builders using vibe coding to replace every SaaS subscription.",
     memberCount: "2k",
     onlineCount: "8",
@@ -247,7 +247,7 @@ function HomePageContent() {
         {searchParams.get('success') === 'true' && subscriptionStatus === 'active' && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-green-800 font-medium">
-              🎉 Welcome to The SaaS Genocide! Your war against software rental begins now.
+              🎉 Welcome to Control OS! Your journey to software ownership begins now.
             </p>
           </div>
         )}
@@ -395,7 +395,7 @@ function HomePageContent() {
             <div className="space-y-8 text-base leading-relaxed">
               {/* The Problem */}
               <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Welcome to The SaaS Genocide</h2>
+                <h2 className="text-2xl font-bold">Welcome to Control OS</h2>
                 <p>
                   We're the AI Chris Lee community. Every Sunday, we pick a tool we're sick of paying for, build a better version with <strong>vibe coding in 20 hours</strong>, and kill the subscription.
                 </p>
@@ -603,12 +603,12 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "EducationalOrganization",
-            "name": "The SaaS Genocide",
+            "name": "Control OS",
             "alternateName": "Build What You Need",
-            "description": "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Kill your SaaS bills forever.",
+            "description": "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Control your software stack.",
             "url": "https://buildwhatyouneed.com",
             "logo": "https://buildwhatyouneed.com/logo.png",
-            "image": "https://buildwhatyouneed.com/saas-genocide-hero.jpg",
+            "image": "https://buildwhatyouneed.com/control-os-hero.jpg",
             "founder": {
               "@type": "Person",
               "name": "AI Chris Lee",

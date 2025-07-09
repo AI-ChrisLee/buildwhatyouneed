@@ -75,7 +75,7 @@ export default function SignupPage() {
                 background: 'radial-gradient(circle at center, #F87171 0%, #EF4444 25%, #DC2626 50%, #B91C1C 75%, #7F1D1D 100%)'
               }}
             />
-            <span className="font-semibold text-xl">The SaaS Genocide</span>
+            <span className="font-semibold text-xl">Control OS</span>
           </Link>
         </div>
 
@@ -84,7 +84,7 @@ export default function SignupPage() {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold tracking-tight">Create your account</h2>
-              <p className="text-sm text-muted-foreground mt-1">Join The SaaS Genocide</p>
+              <p className="text-sm text-muted-foreground mt-1">Join Control OS</p>
             </div>
 
             <form onSubmit={handleSignup} className="space-y-4">

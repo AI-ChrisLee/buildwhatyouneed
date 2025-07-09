@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import Cookies from 'js-cookie'
 import { Button } from "@/components/ui/button"
 import { 
   ChevronLeft, 
@@ -140,6 +141,23 @@ export default function CourseDetailPage() {
         .order('order_index')
 
       setLessons(lessonsData || [])
+      
+      // Auto-select first lesson or last viewed lesson
+      if (lessonsData && lessonsData.length > 0) {
+        // Check for last viewed lesson in cookie
+        const cookieKey = `last-lesson-${courseId}`
+        const lastViewedLessonId = Cookies.get(cookieKey)
+        
+        if (lastViewedLessonId && lessonsData.find(l => l.id === lastViewedLessonId)) {
+          // Set the last viewed lesson if it exists
+          setSelectedLesson(lastViewedLessonId)
+        } else {
+          // Otherwise, select the first lesson
+          const firstLesson = lessonsData
+            .sort((a, b) => a.order_index - b.order_index)[0]
+          setSelectedLesson(firstLesson.id)
+        }
+      }
     } catch (error) {
       console.error('Error loading course:', error)
     } finally {
@@ -528,10 +546,10 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3">
-        <div className="flex items-center gap-4">
+      <div className="bg-white border-b px-6 py-3">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -542,7 +560,7 @@ export default function CourseDetailPage() {
           </Button>
           <h1 className="text-lg font-semibold">{course.title}</h1>
           {course.is_draft && isAdmin && (
-            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+            <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">
               DRAFT
             </span>
           )}
@@ -567,7 +585,7 @@ export default function CourseDetailPage() {
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-36">
                   <DropdownMenuItem onClick={() => {
                     router.push(`/classroom?edit=${courseId}`)
                   }}>
@@ -606,9 +624,9 @@ export default function CourseDetailPage() {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             className={`
-                              group flex items-center gap-2 px-4 py-3 hover:bg-gray-50 cursor-pointer
-                              ${editingLesson === lesson.id ? 'bg-yellow-50' : ''}
-                              ${selectedLesson === lesson.id && !editingLesson ? 'bg-gray-100' : ''}
+                              group flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer border-l-2
+                              ${editingLesson === lesson.id ? 'bg-yellow-50 border-l-yellow-400' : 'border-l-transparent'}
+                              ${selectedLesson === lesson.id && !editingLesson ? 'bg-gray-100 border-l-gray-400' : ''}
                               ${snapshot.isDragging ? 'shadow-lg bg-white z-50' : ''}
                             `}
                             onClick={(e) => {
@@ -616,6 +634,8 @@ export default function CourseDetailPage() {
                               if ((e.target as HTMLElement).closest('button, .dropdown-trigger')) return
                               setSelectedLesson(lesson.id)
                               setEditingLesson(null)
+                              // Save to cookie
+                              Cookies.set(`last-lesson-${courseId}`, lesson.id, { expires: 30 })
                             }}
                           >
                             {isAdmin && (
@@ -623,10 +643,10 @@ export default function CourseDetailPage() {
                                 <GripVertical className="h-4 w-4 text-gray-400" />
                               </div>
                             )}
-                            <FileText className="h-4 w-4 text-gray-400" />
-                            <span className="flex-1">{lesson.title}</span>
+                            <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span className="flex-1 text-sm">{lesson.title}</span>
                             {lesson.is_draft && isAdmin && (
-                              <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+                              <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">
                                 DRAFT
                               </span>
                             )}
@@ -643,7 +663,7 @@ export default function CourseDetailPage() {
                                     <MoreHorizontal className="h-3 w-3" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" className="w-36">
                                   <DropdownMenuItem onClick={() => {
                                     setEditingLesson(lesson.id)
                                     setEditingContent(lesson.content || "")
@@ -679,19 +699,19 @@ export default function CourseDetailPage() {
 
             {/* Modules with their own droppable areas */}
             {modules.map((module) => (
-              <div key={module.id} className="border-t">
-                <div className="group flex items-center gap-2 px-4 py-3 hover:bg-gray-50">
+              <div key={module.id} className="mt-4">
+                <div className="group flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
                   <button
                     onClick={() => toggleModule(module.id)}
                     className="flex items-center gap-2 flex-1"
                   >
                     {module.is_collapsed ? (
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4 text-gray-500" />
                     ) : (
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
                     )}
-                    <Folder className="h-4 w-4 text-gray-400" />
-                    <span className="font-medium">{module.title}</span>
+                    <Folder className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">{module.title}</span>
                   </button>
                   
                   {isAdmin && (
@@ -705,7 +725,7 @@ export default function CourseDetailPage() {
                           <Plus className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="w-36">
                         <DropdownMenuItem onClick={() => handleAddLesson(module.id)}>
                           <FileText className="h-4 w-4 mr-2" />
                           Add page to folder
@@ -726,7 +746,7 @@ export default function CourseDetailPage() {
                   <Droppable droppableId={module.id}>
                     {(provided, snapshot) => (
                       <div 
-                        className={`pl-8 min-h-[2rem] ${snapshot.isDraggingOver ? 'bg-blue-50' : ''}`}
+                        className={`min-h-[2rem] ${snapshot.isDraggingOver ? 'bg-blue-50' : ''}`}
                         {...provided.droppableProps} 
                         ref={provided.innerRef}
                       >
@@ -740,9 +760,9 @@ export default function CourseDetailPage() {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   className={`
-                                    group flex items-center gap-2 px-4 py-3 hover:bg-gray-50 cursor-pointer
-                                    ${editingLesson === lesson.id ? 'bg-yellow-50' : ''}
-                                    ${selectedLesson === lesson.id && !editingLesson ? 'bg-gray-100' : ''}
+                                    group flex items-center gap-2 pl-12 pr-4 py-2 hover:bg-gray-100 cursor-pointer border-l-2
+                                    ${editingLesson === lesson.id ? 'bg-yellow-50 border-l-yellow-400' : 'border-l-transparent'}
+                                    ${selectedLesson === lesson.id && !editingLesson ? 'bg-gray-100 border-l-gray-400' : ''}
                                     ${snapshot.isDragging ? 'shadow-lg bg-white z-50' : ''}
                                   `}
                                   onClick={(e) => {
@@ -750,6 +770,8 @@ export default function CourseDetailPage() {
                                     if ((e.target as HTMLElement).closest('button, .dropdown-trigger')) return
                                     setSelectedLesson(lesson.id)
                                     setEditingLesson(null)
+                                    // Save to cookie
+                                    Cookies.set(`last-lesson-${courseId}`, lesson.id, { expires: 30 })
                                   }}
                                 >
                                   {isAdmin && (
@@ -757,10 +779,10 @@ export default function CourseDetailPage() {
                                       <GripVertical className="h-4 w-4 text-gray-400" />
                                     </div>
                                   )}
-                                  <FileText className="h-4 w-4 text-gray-400" />
-                                  <span className="flex-1">{lesson.title}</span>
+                                  <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                  <span className="flex-1 text-sm">{lesson.title}</span>
                                   {lesson.is_draft && isAdmin && (
-                                    <span className="px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 rounded">
+                                    <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">
                                       DRAFT
                                     </span>
                                   )}
@@ -808,7 +830,7 @@ export default function CourseDetailPage() {
                           ))}
                         {provided.placeholder}
                         {lessons.filter(l => l.module_id === module.id).length === 0 && (
-                          <div className="text-sm text-gray-400 px-4 py-2">
+                          <div className="text-sm text-gray-400 pl-12 py-2">
                             Drop pages here
                           </div>
                         )}

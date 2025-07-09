@@ -90,7 +90,7 @@ export function FreeSignupModal({ open, onOpenChange, onLoginClick }: FreeSignup
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold">Create your account</h2>
             <p className="text-gray-600 mt-2">
-              to join The SaaS Genocide
+              to join Control OS
             </p>
           </div>
 

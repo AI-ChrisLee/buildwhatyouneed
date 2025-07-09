@@ -76,7 +76,7 @@ export default function LoginPage() {
                 background: 'radial-gradient(circle at center, #F87171 0%, #EF4444 25%, #DC2626 50%, #B91C1C 75%, #7F1D1D 100%)'
               }}
             />
-            <span className="font-semibold text-xl">The SaaS Genocide</span>
+            <span className="font-semibold text-xl">Control OS</span>
           </Link>
         </div>
 

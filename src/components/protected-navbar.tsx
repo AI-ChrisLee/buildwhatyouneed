@@ -106,13 +106,13 @@ export function ProtectedNavBar() {
             <Link href="/" className="flex items-center gap-2 shrink-0">
               <Image 
                 src="/logo.png" 
-                alt="AI Chris Lee - The SaaS Genocide Logo" 
+                alt="AI Chris Lee - Control OS Logo" 
                 width={32} 
                 height={32} 
                 className="w-8 h-8"
                 priority
               />
-              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">The SaaS Genocide</span>
+              <span className="font-semibold text-base md:text-lg hidden sm:inline-block">Control OS</span>
             </Link>
 
             {/* Navigation - Desktop */}

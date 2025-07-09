@@ -109,8 +109,8 @@ export function CommunityBadge() {
       <div className="relative h-48 bg-black overflow-hidden">
         {/* Roman emperor image */}
         <Image 
-          src="/saas-genocide-hero.jpg" 
-          alt="The SaaS Genocide by AI Chris Lee - Vibe Coding Hero Image"
+          src="/control-os-hero.jpg" 
+          alt="Control OS by AI Chris Lee - Vibe Coding Hero Image"
           fill
           className="object-cover"
           priority
@@ -126,7 +126,7 @@ export function CommunityBadge() {
         
         {/* Text overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
-          <h3 className="text-2xl font-bold drop-shadow-lg">The SaaS Genocide</h3>
+          <h3 className="text-2xl font-bold drop-shadow-lg">Control OS</h3>
           <p className="text-sm mt-1 text-white/90 drop-shadow-lg">By AI Chris Lee</p>
         </div>
       </div>
@@ -192,7 +192,7 @@ export function CommunityBadge() {
             className="w-full bg-gray-900 hover:bg-gray-800 text-white"
             size="lg"
           >
-            Join The SaaS Genocide
+            Join Control OS
           </Button>
         ) : user && membershipTier === 'free' && !hasActiveSubscription && !isAdmin ? (
           <Button 
@@ -209,7 +209,7 @@ export function CommunityBadge() {
       <SignupModal 
         open={showSignupModal} 
         onOpenChange={setShowSignupModal}
-        communityName="The SaaS Genocide"
+        communityName="Control OS"
         onLoginClick={() => {
           setShowSignupModal(false)
           setShowLoginModal(true)

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import { Loader2 } from "lucide-react"
+import { useAuth } from "@/providers/auth-provider"
 
 interface LoginModalProps {
   open: boolean
@@ -22,6 +23,7 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
   const [error, setError] = useState("")
   const router = useRouter()
   const supabase = createClient()
+  const { refreshAuth } = useAuth()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -54,16 +56,19 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
         
         onOpenChange(false)
         
-        // Force a hard navigation to ensure middleware runs
+        // Refresh auth context
+        await refreshAuth()
+        
+        // Use router.push instead of window.location for smoother navigation
         if ((subscriptions && subscriptions.length > 0) || userData?.is_admin) {
           // Paid member or admin - go to threads
-          window.location.href = '/threads'
+          router.push('/threads')
         } else if (userData?.membership_tier === 'free') {
           // Free tier user - go to classroom
-          window.location.href = '/classroom'
+          router.push('/classroom')
         } else {
           // No subscription, no tier - go to home page
-          window.location.href = '/'
+          router.push('/')
         }
       }
     } catch (error: any) {
@@ -78,14 +83,14 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
       <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden">
         <DialogTitle className="sr-only">Log in to your account</DialogTitle>
         <DialogDescription className="sr-only">
-          Log in to The SaaS Genocide
+          Log in to Control OS
         </DialogDescription>
         <div className="p-8">
 
           {/* Form */}
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-semibold">Log in to The SaaS Genocide</h2>
+              <h2 className="text-xl font-semibold">Log in to Control OS</h2>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
@@ -116,20 +121,6 @@ export function LoginModal({ open, onOpenChange, onSignupClick }: LoginModalProp
                 />
               </div>
 
-              <div className="flex justify-between items-center text-sm">
-                <a 
-                  href="/forgot-password" 
-                  className="text-blue-600 hover:underline"
-                >
-                  Forgot password?
-                </a>
-                <a 
-                  href="#" 
-                  className="text-blue-600 hover:underline"
-                >
-                  Log in with a code
-                </a>
-              </div>
 
               {error && (
                 <div className="text-sm text-red-600 text-center">

@@ -1,9 +1,11 @@
 "use client"
 
 import { ProtectedNavBar } from "@/components/protected-navbar"
-import { AuthGuard } from "@/components/auth-guard"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
+import { useAuth } from "@/providers/auth-provider"
+import { AuthLoading } from "@/components/auth-loading"
+import { useEffect } from "react"
 
 // Lazy load the community badge since it's not critical for initial render
 const CommunityBadge = dynamic(() => import("@/components/community-badge").then(mod => ({ default: mod.CommunityBadge })), {
@@ -17,11 +19,29 @@ export default function CommunityLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, loading, isAuthenticated } = useAuth()
   
   // Show community badge only on threads page
   const showCommunityBadge = ['/threads'].includes(pathname)
 
-  const content = (
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [loading, isAuthenticated, router])
+
+  // Show loading state while checking auth
+  if (loading) {
+    return <AuthLoading />
+  }
+
+  // Don't render anything if not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
+
+  return (
     <div className="min-h-screen bg-background">
       <ProtectedNavBar />
       <main className="pt-4 md:pt-6">
@@ -44,6 +64,4 @@ export default function CommunityLayout({
       </main>
     </div>
   )
-
-  return content
 }

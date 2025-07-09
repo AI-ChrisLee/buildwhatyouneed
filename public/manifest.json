@@ -1,7 +1,7 @@
 {
-  "name": "The SaaS Genocide by AI Chris Lee",
-  "short_name": "SaaS Genocide",
-  "description": "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Kill your bills forever.",
+  "name": "Control OS by AI Chris Lee",
+  "short_name": "Control OS",
+  "description": "Learn vibe coding with AI Chris Lee. Build SaaS replacements in hours using AI. Control your software stack.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
